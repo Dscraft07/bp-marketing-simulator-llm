@@ -23,9 +23,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { campaignSchema, type CampaignFormData } from "@/lib/validation/campaignSchema";
 import { createCampaign } from "@/app/campaigns/actions";
 import { useState } from "react";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export function CampaignForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
 
   const form = useForm<CampaignFormData>({
     resolver: zodResolver(campaignSchema),
@@ -45,14 +48,13 @@ export function CampaignForm() {
     const result = await createCampaign(formData);
 
     if (result.error) {
-      console.error(result.error);
-      // TODO: Show error toast
+      toast.error(result.error);
+      setIsSubmitting(false);
     } else {
+      toast.success("Campaign created successfully!");
       form.reset();
-      // TODO: Show success toast and redirect
+      router.push("/campaigns");
     }
-
-    setIsSubmitting(false);
   };
 
   return (

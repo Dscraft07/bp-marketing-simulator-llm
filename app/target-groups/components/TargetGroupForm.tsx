@@ -27,9 +27,12 @@ import {
 } from "@/lib/validation/targetGroupSchema";
 import { createTargetGroup } from "@/app/target-groups/actions";
 import { useState } from "react";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export function TargetGroupForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
 
   const form = useForm<TargetGroupFormData>({
     resolver: zodResolver(targetGroupSchema),
@@ -51,14 +54,13 @@ export function TargetGroupForm() {
     const result = await createTargetGroup(formData);
 
     if (result.error) {
-      console.error(result.error);
-      // TODO: Show error toast
+      toast.error(result.error);
+      setIsSubmitting(false);
     } else {
+      toast.success("Target group created successfully!");
       form.reset();
-      // TODO: Show success toast and redirect
+      router.push("/target-groups");
     }
-
-    setIsSubmitting(false);
   };
 
   return (
