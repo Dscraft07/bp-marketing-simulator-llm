@@ -25,6 +25,7 @@ import { createCampaign } from "@/app/campaigns/actions";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
 
 export function CampaignForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -102,6 +103,9 @@ export function CampaignForm() {
 
             <div className="flex gap-4">
               <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
                 {isSubmitting ? "Creating..." : "Create Campaign"}
               </Button>
               <Button type="button" variant="outline" disabled={isSubmitting}>
