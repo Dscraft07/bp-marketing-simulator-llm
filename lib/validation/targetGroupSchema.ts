@@ -12,8 +12,7 @@ export const targetGroupSchema = z.object({
     .number()
     .int("Persona count must be a whole number")
     .min(1, "Persona count must be at least 1")
-    .max(100, "Persona count must not exceed 100")
-    .default(5),
+    .max(100, "Persona count must not exceed 100"),
 });
 
 export type TargetGroupFormData = z.infer<typeof targetGroupSchema>;
