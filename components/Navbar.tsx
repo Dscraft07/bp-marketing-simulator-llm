@@ -22,6 +22,12 @@ export function Navbar() {
             >
               Campaigns
             </Link>
+            <Link
+              href="/target-groups"
+              className="text-sm hover:text-foreground/80 transition-colors"
+            >
+              Target Groups
+            </Link>
           </div>
         </div>
         <LogoutButton />
