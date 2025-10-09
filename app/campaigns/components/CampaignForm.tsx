@@ -54,7 +54,7 @@ export function CampaignForm() {
     } else {
       toast.success("Campaign created successfully!");
       form.reset();
-      router.push("/campaigns");
+      router.push("/dashboard");
     }
   };
 

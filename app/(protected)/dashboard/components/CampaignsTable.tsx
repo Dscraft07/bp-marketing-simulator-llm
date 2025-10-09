@@ -31,29 +31,35 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
   }
 
   return (
-    <div className="border rounded-lg">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Created At</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {campaigns.map((campaign) => (
-            <TableRow key={campaign.id}>
-              <TableCell className="font-medium">{campaign.name}</TableCell>
-              <TableCell>
-                {new Date(campaign.created_at).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
-                })}
-              </TableCell>
+    <div className="border rounded-lg overflow-hidden">
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[200px]">Name</TableHead>
+              <TableHead className="min-w-0">Content</TableHead>
+              <TableHead className="w-[120px]">Created At</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {campaigns.map((campaign) => (
+              <TableRow key={campaign.id}>
+                <TableCell className="font-medium">{campaign.name}</TableCell>
+                <TableCell className="truncate max-w-0">
+                  {campaign.content}
+                </TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {new Date(campaign.created_at).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }

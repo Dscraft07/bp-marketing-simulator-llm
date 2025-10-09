@@ -32,31 +32,37 @@ export function TargetGroupsTable({ targetGroups }: TargetGroupsTableProps) {
   }
 
   return (
-    <div className="border rounded-lg">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Personas</TableHead>
-            <TableHead>Created At</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {targetGroups.map((group) => (
-            <TableRow key={group.id}>
-              <TableCell className="font-medium">{group.name}</TableCell>
-              <TableCell>{group.persona_count}</TableCell>
-              <TableCell>
-                {new Date(group.created_at).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
-                })}
-              </TableCell>
+    <div className="border rounded-lg overflow-hidden">
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[180px]">Name</TableHead>
+              <TableHead className="min-w-0">Description</TableHead>
+              <TableHead className="w-[100px]">Personas</TableHead>
+              <TableHead className="w-[120px]">Created At</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {targetGroups.map((group) => (
+              <TableRow key={group.id}>
+                <TableCell className="font-medium">{group.name}</TableCell>
+                <TableCell className="truncate max-w-0">
+                  {group.description}
+                </TableCell>
+                <TableCell>{group.persona_count}</TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {new Date(group.created_at).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }

@@ -60,7 +60,7 @@ export function TargetGroupForm() {
     } else {
       toast.success("Target group created successfully!");
       form.reset();
-      router.push("/target-groups");
+      router.push("/dashboard");
     }
   };
 
