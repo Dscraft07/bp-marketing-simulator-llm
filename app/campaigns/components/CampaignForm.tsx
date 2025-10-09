@@ -21,8 +21,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { campaignSchema, type CampaignFormData } from "@/lib/validation/campaignSchema";
+import { createCampaign } from "@/app/campaigns/actions";
+import { useState } from "react";
 
 export function CampaignForm() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const form = useForm<CampaignFormData>({
     resolver: zodResolver(campaignSchema),
     defaultValues: {
@@ -31,8 +35,24 @@ export function CampaignForm() {
     },
   });
 
-  const onSubmit = (data: CampaignFormData) => {
-    console.log(data);
+  const onSubmit = async (data: CampaignFormData) => {
+    setIsSubmitting(true);
+
+    const formData = new FormData();
+    formData.append("name", data.name);
+    formData.append("content", data.content);
+
+    const result = await createCampaign(formData);
+
+    if (result.error) {
+      console.error(result.error);
+      // TODO: Show error toast
+    } else {
+      form.reset();
+      // TODO: Show success toast and redirect
+    }
+
+    setIsSubmitting(false);
   };
 
   return (
@@ -79,8 +99,10 @@ export function CampaignForm() {
             />
 
             <div className="flex gap-4">
-              <Button type="submit">Create Campaign</Button>
-              <Button type="button" variant="outline">
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Creating..." : "Create Campaign"}
+              </Button>
+              <Button type="button" variant="outline" disabled={isSubmitting}>
                 Cancel
               </Button>
             </div>

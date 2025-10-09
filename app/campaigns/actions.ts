@@ -46,8 +46,9 @@ export async function createCampaign(formData: FormData) {
     .single();
 
   if (error) {
+    console.error("Supabase error:", error);
     return {
-      error: "Failed to create campaign. Please try again.",
+      error: `Failed to create campaign: ${error.message}`,
     };
   }
 
