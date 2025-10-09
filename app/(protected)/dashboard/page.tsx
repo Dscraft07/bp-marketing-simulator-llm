@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { CampaignsTable } from "./components/CampaignsTable";
+import { TargetGroupsTable } from "./components/TargetGroupsTable";
 
 interface Campaign {
   id: string;
@@ -87,17 +88,7 @@ export default async function DashboardPage() {
 
         <div>
           <h2 className="text-xl font-semibold mb-4">Target Groups ({targetGroups.length})</h2>
-          <div className="space-y-2">
-            {targetGroups.length === 0 ? (
-              <p className="text-muted-foreground">No target groups yet</p>
-            ) : (
-              targetGroups.map((group) => (
-                <div key={group.id} className="p-4 border rounded-lg">
-                  <h3 className="font-medium">{group.name}</h3>
-                </div>
-              ))
-            )}
-          </div>
+          <TargetGroupsTable targetGroups={targetGroups} />
         </div>
       </div>
     </div>
