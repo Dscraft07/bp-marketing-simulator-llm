@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { CampaignsTable } from "./components/CampaignsTable";
 
 interface Campaign {
   id: string;
@@ -81,17 +82,7 @@ export default async function DashboardPage() {
       <div className="grid gap-6 md:grid-cols-2">
         <div>
           <h2 className="text-xl font-semibold mb-4">Campaigns ({campaigns.length})</h2>
-          <div className="space-y-2">
-            {campaigns.length === 0 ? (
-              <p className="text-muted-foreground">No campaigns yet</p>
-            ) : (
-              campaigns.map((campaign) => (
-                <div key={campaign.id} className="p-4 border rounded-lg">
-                  <h3 className="font-medium">{campaign.name}</h3>
-                </div>
-              ))
-            )}
-          </div>
+          <CampaignsTable campaigns={campaigns} />
         </div>
 
         <div>
