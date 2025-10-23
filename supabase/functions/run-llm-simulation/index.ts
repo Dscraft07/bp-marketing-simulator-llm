@@ -264,22 +264,76 @@ Deno.serve(async (req) => {
       );
     }
 
-    // TODO: Store results in simulation_results table
-    // TODO: Update simulation status to 'completed'
+    // Store results in simulation_results table
+    console.log("Storing persona reactions in database...");
 
-    // For now, just return success with reaction count
+    const resultsToInsert = llmResponse.reactions.map((reaction) => ({
+      simulation_id: simulationId,
+      persona_name: reaction.persona_name,
+      content: reaction.content,
+      sentiment: reaction.sentiment,
+      relevance_score: reaction.relevance_score,
+      toxicity_score: reaction.toxicity_score,
+    }));
+
+    const { error: insertError } = await supabase
+      .from("simulation_results")
+      .insert(resultsToInsert);
+
+    if (insertError) {
+      console.error("Failed to insert simulation results:", insertError);
+
+      // Update simulation status to 'failed'
+      await supabase
+        .from("simulations")
+        .update({
+          status: "failed",
+          error_message: `Failed to save results: ${insertError.message}`,
+          finished_at: new Date().toISOString(),
+        })
+        .eq("id", simulationId);
+
+      return new Response(
+        JSON.stringify({
+          error: "Failed to save simulation results",
+          details: insertError.message,
+        }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log(`Successfully saved ${resultsToInsert.length} results to database`);
+
+    // Update simulation status to 'completed'
+    const { error: completeError } = await supabase
+      .from("simulations")
+      .update({
+        status: "completed",
+        finished_at: new Date().toISOString(),
+        model: "grok-4-fast-reasoning",
+      })
+      .eq("id", simulationId);
+
+    if (completeError) {
+      console.error("Failed to update simulation status:", completeError);
+      // Don't fail the whole operation - results are already saved
+    } else {
+      console.log("Simulation marked as completed");
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
-        message: "Persona reactions generated successfully",
+        message: "Simulation completed successfully",
         simulationId,
         reactionCount: llmResponse.reactions.length,
       }),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Error in run-llm-simulation:", error);
+    console.error("Unexpected error in run-llm-simulation:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
+
     return new Response(
       JSON.stringify({ error: "Internal server error", details: errorMessage }),
       { status: 500, headers: { "Content-Type": "application/json" } }
