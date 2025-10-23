@@ -5,7 +5,7 @@ import { CampaignsTable } from "./CampaignsTable";
 import { TargetGroupsTable } from "./TargetGroupsTable";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Play } from "lucide-react";
 
 interface Campaign {
   id: string;
@@ -48,12 +48,32 @@ export function DashboardClient({
     setSelectedTargetGroupId(targetGroupId);
   };
 
+  const handleRunSimulation = () => {
+    // TODO: Implement simulation logic
+    console.log("Running simulation", {
+      campaignId: selectedCampaignId,
+      targetGroupId: selectedTargetGroupId,
+    });
+  };
+
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-4">Dashboard</h1>
-      <p className="text-muted-foreground mb-8">Welcome to your dashboard</p>
+      <div className="flex justify-between items-center mb-4">
+        <div>
+          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <p className="text-muted-foreground mt-2">Welcome to your dashboard</p>
+        </div>
+        <Button
+          size="lg"
+          disabled={!selectedCampaignId || !selectedTargetGroupId}
+          onClick={handleRunSimulation}
+        >
+          <Play className="mr-2 h-5 w-5" />
+          Run Simulation
+        </Button>
+      </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2 mt-8">
         <div>
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">
