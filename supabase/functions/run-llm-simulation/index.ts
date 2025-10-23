@@ -8,6 +8,156 @@ interface SimulationRequest {
   simulationId: string;
 }
 
+interface PersonaReaction {
+  persona_name: string; // e.g., "Tech-Savvy Millennial", "Budget-Conscious Parent"
+  content: string; // The actual reaction/response text
+  sentiment: "positive" | "negative" | "neutral";
+  relevance_score: number; // 0-1: How relevant is the campaign to this persona
+  toxicity_score: number; // 0-1: How toxic/negative is the reaction (should be low)
+}
+
+interface LLMResponse {
+  reactions: PersonaReaction[];
+}
+
+/**
+ * Builds prompts for Grok to generate persona reactions to a marketing campaign
+ */
+function buildPrompts(
+  campaignName: string,
+  campaignContent: string,
+  targetGroupName: string,
+  targetGroupDescription: string,
+  personaCount: number
+): { systemPrompt: string; userPrompt: string } {
+  const systemPrompt = `You are an expert marketing analyst specializing in consumer behavior and persona simulation. Your task is to generate realistic reactions from diverse personas to marketing campaigns.
+
+CRITICAL INSTRUCTIONS:
+1. Generate exactly ${personaCount} unique personas based on the provided target group description
+2. Each persona must be distinct with their own characteristics, demographics, and mindset
+3. For each persona, provide a detailed reaction to the marketing campaign content
+4. Analyze sentiment (positive, negative, or neutral), relevance, and toxicity
+5. Your response MUST be valid JSON only, no additional text or explanation
+
+OUTPUT FORMAT (strict JSON):
+{
+  "reactions": [
+    {
+      "persona_name": "Descriptive persona name (e.g., 'Tech-Savvy Millennial', 'Budget-Conscious Parent')",
+      "content": "Detailed reaction to the campaign - what they think, feel, and whether they would engage. Include persona's background, why they react this way, and specific opinions about the campaign.",
+      "sentiment": "positive|negative|neutral",
+      "relevance_score": 0.85,
+      "toxicity_score": 0.05
+    }
+  ]
+}
+
+SCORING GUIDELINES:
+- relevance_score (0.0-1.0): How relevant is this campaign to the persona's needs/interests
+  * 0.0-0.3: Not relevant at all
+  * 0.4-0.6: Somewhat relevant
+  * 0.7-1.0: Highly relevant
+- toxicity_score (0.0-1.0): How toxic/offensive is the reaction (should typically be low)
+  * 0.0-0.2: Professional, constructive feedback
+  * 0.3-0.5: Slightly negative but acceptable
+  * 0.6-1.0: Inappropriate, toxic (avoid unless justified)
+
+Requirements:
+- Be realistic and honest - not all personas will react positively
+- Include specific details about why each persona reacts the way they do
+- Consider demographics, psychographics, and behavioral patterns
+- Scores should correlate with sentiment and content
+- Response must be parseable JSON with no markdown formatting or code blocks`;
+
+  const userPrompt = `Generate ${personaCount} persona reactions for the following marketing campaign:
+
+CAMPAIGN NAME: ${campaignName}
+
+CAMPAIGN CONTENT:
+${campaignContent}
+
+TARGET GROUP: ${targetGroupName}
+TARGET GROUP DESCRIPTION:
+${targetGroupDescription}
+
+Generate exactly ${personaCount} unique personas from this target group and their reactions to the campaign. Return only the JSON response as specified in the system instructions.`;
+
+  return { systemPrompt, userPrompt };
+}
+
+/**
+ * Calls x.ai API (Grok) to generate persona reactions
+ */
+async function callGrokAPI(
+  systemPrompt: string,
+  userPrompt: string,
+  apiKey: string
+): Promise<LLMResponse> {
+  const X_AI_API_URL = "https://api.x.ai/v1/chat/completions";
+
+  console.log("Calling x.ai API...");
+
+  const response = await fetch(X_AI_API_URL, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "grok-4-fast-reasoning",
+      messages: [
+        {
+          role: "system",
+          content: systemPrompt,
+        },
+        {
+          role: "user",
+          content: userPrompt,
+        },
+      ],
+      response_format: {
+        type: "json_object",
+      },
+      temperature: 0.7,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("x.ai API error:", response.status, errorText);
+    throw new Error(`x.ai API error: ${response.status} - ${errorText}`);
+  }
+
+  const data = await response.json();
+  console.log("x.ai API response received");
+
+  // Extract the content from the API response
+  const content = data.choices?.[0]?.message?.content;
+  if (!content) {
+    console.error("No content in API response:", data);
+    throw new Error("No content in x.ai API response");
+  }
+
+  // Parse the JSON content
+  let parsedResponse: LLMResponse;
+  try {
+    parsedResponse = JSON.parse(content);
+  } catch (error) {
+    console.error("Failed to parse JSON response:", content);
+    throw new Error(`Failed to parse JSON response: ${error.message}`);
+  }
+
+  // Validate the response structure
+  if (!parsedResponse.reactions || !Array.isArray(parsedResponse.reactions)) {
+    console.error("Invalid response structure:", parsedResponse);
+    throw new Error("Invalid response structure: missing or invalid reactions array");
+  }
+
+  console.log(`Successfully parsed ${parsedResponse.reactions.length} persona reactions`);
+
+  return parsedResponse;
+}
+
 Deno.serve(async (req) => {
   try {
     // Parse request body
@@ -74,18 +224,56 @@ Deno.serve(async (req) => {
 
     console.log(`Simulation status updated to 'running'`);
 
-    // TODO: Implement LLM simulation logic here
-    // - Generate personas based on target group description
-    // - For each persona, generate response to campaign content using x.ai API (grok-beta)
-    // - Store results in simulation_results table
-    // - Update simulation status to 'completed' or 'failed'
+    // Build prompts for Grok
+    const { systemPrompt, userPrompt } = buildPrompts(
+      simulation.campaign_snapshot.name,
+      simulation.campaign_snapshot.content,
+      simulation.target_group_snapshot.name,
+      simulation.target_group_snapshot.description,
+      simulation.target_group_snapshot.persona_count
+    );
 
-    // For now, just return success
+    console.log("Prompts built successfully");
+    console.log(`System prompt length: ${systemPrompt.length} chars`);
+    console.log(`User prompt length: ${userPrompt.length} chars`);
+
+    // Call x.ai API to generate persona reactions
+    let llmResponse: LLMResponse;
+    try {
+      llmResponse = await callGrokAPI(systemPrompt, userPrompt, xApiKey);
+      console.log(`Generated ${llmResponse.reactions.length} persona reactions`);
+    } catch (apiError) {
+      console.error("Failed to call Grok API:", apiError);
+
+      // Update simulation status to 'failed'
+      await supabase
+        .from("simulations")
+        .update({
+          status: "failed",
+          error_message: `API call failed: ${apiError.message}`,
+          finished_at: new Date().toISOString(),
+        })
+        .eq("id", simulationId);
+
+      return new Response(
+        JSON.stringify({
+          error: "Failed to generate persona reactions",
+          details: apiError.message,
+        }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // TODO: Store results in simulation_results table
+    // TODO: Update simulation status to 'completed'
+
+    // For now, just return success with reaction count
     return new Response(
       JSON.stringify({
         success: true,
-        message: "Simulation processing started",
+        message: "Persona reactions generated successfully",
         simulationId,
+        reactionCount: llmResponse.reactions.length,
       }),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
