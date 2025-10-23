@@ -6,6 +6,9 @@ import { TargetGroupsTable } from "./TargetGroupsTable";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Plus, Play } from "lucide-react";
+import { runSimulation } from "@/app/simulations/actions";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface Campaign {
   id: string;
@@ -33,12 +36,14 @@ export function DashboardClient({
   campaigns,
   targetGroups,
 }: DashboardClientProps) {
+  const router = useRouter();
   const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(
     null
   );
   const [selectedTargetGroupId, setSelectedTargetGroupId] = useState<
     string | null
   >(null);
+  const [isRunning, setIsRunning] = useState(false);
 
   const handleSelectCampaign = (campaignId: string) => {
     setSelectedCampaignId(campaignId);
@@ -48,12 +53,33 @@ export function DashboardClient({
     setSelectedTargetGroupId(targetGroupId);
   };
 
-  const handleRunSimulation = () => {
-    // TODO: Implement simulation logic
-    console.log("Running simulation", {
-      campaignId: selectedCampaignId,
-      targetGroupId: selectedTargetGroupId,
-    });
+  const handleRunSimulation = async () => {
+    if (!selectedCampaignId || !selectedTargetGroupId) {
+      toast.error("Please select both a campaign and a target group");
+      return;
+    }
+
+    setIsRunning(true);
+
+    try {
+      const result = await runSimulation(
+        selectedCampaignId,
+        selectedTargetGroupId
+      );
+
+      if (result.success && result.simulationId) {
+        toast.success("Simulation started successfully!");
+        // Redirect to simulation detail page (to be created later)
+        router.push(`/simulations/${result.simulationId}`);
+      } else {
+        toast.error(result.error || "Failed to start simulation");
+      }
+    } catch (error) {
+      console.error("Error running simulation:", error);
+      toast.error("An unexpected error occurred");
+    } finally {
+      setIsRunning(false);
+    }
   };
 
   return (
@@ -65,11 +91,11 @@ export function DashboardClient({
         </div>
         <Button
           size="lg"
-          disabled={!selectedCampaignId || !selectedTargetGroupId}
+          disabled={!selectedCampaignId || !selectedTargetGroupId || isRunning}
           onClick={handleRunSimulation}
         >
           <Play className="mr-2 h-5 w-5" />
-          Run Simulation
+          {isRunning ? "Starting..." : "Run Simulation"}
         </Button>
       </div>
 
