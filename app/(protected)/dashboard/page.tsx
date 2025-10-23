@@ -1,9 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { CampaignsTable } from "./components/CampaignsTable";
-import { TargetGroupsTable } from "./components/TargetGroupsTable";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { DashboardClient } from "./components/DashboardClient";
 
 interface Campaign {
   id: string;
@@ -78,38 +74,5 @@ export default async function DashboardPage() {
     getTargetGroups(),
   ]);
 
-  return (
-    <div>
-      <h1 className="text-3xl font-bold mb-4">Dashboard</h1>
-      <p className="text-muted-foreground mb-8">Welcome to your dashboard</p>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <div>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Campaigns ({campaigns.length})</h2>
-            <Button asChild size="sm">
-              <Link href="/campaigns/new">
-                <Plus className="mr-2 h-4 w-4" />
-                New Campaign
-              </Link>
-            </Button>
-          </div>
-          <CampaignsTable campaigns={campaigns} />
-        </div>
-
-        <div>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Target Groups ({targetGroups.length})</h2>
-            <Button asChild size="sm">
-              <Link href="/target-groups/new">
-                <Plus className="mr-2 h-4 w-4" />
-                New Target Group
-              </Link>
-            </Button>
-          </div>
-          <TargetGroupsTable targetGroups={targetGroups} />
-        </div>
-      </div>
-    </div>
-  );
+  return <DashboardClient campaigns={campaigns} targetGroups={targetGroups} />;
 }

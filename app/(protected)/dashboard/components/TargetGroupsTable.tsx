@@ -20,9 +20,15 @@ interface TargetGroup {
 
 interface TargetGroupsTableProps {
   targetGroups: TargetGroup[];
+  selectedTargetGroupId: string | null;
+  onSelectTargetGroup: (targetGroupId: string) => void;
 }
 
-export function TargetGroupsTable({ targetGroups }: TargetGroupsTableProps) {
+export function TargetGroupsTable({
+  targetGroups,
+  selectedTargetGroupId,
+  onSelectTargetGroup,
+}: TargetGroupsTableProps) {
   if (targetGroups.length === 0) {
     return (
       <p className="text-muted-foreground text-center py-8">
@@ -32,7 +38,7 @@ export function TargetGroupsTable({ targetGroups }: TargetGroupsTableProps) {
   }
 
   return (
-    <div className="border rounded-lg overflow-hidden">
+    <div className="border rounded-lg overflow-hidden relative">
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
@@ -45,7 +51,20 @@ export function TargetGroupsTable({ targetGroups }: TargetGroupsTableProps) {
           </TableHeader>
           <TableBody>
             {targetGroups.map((group) => (
-              <TableRow key={group.id}>
+              <TableRow
+                key={group.id}
+                className={`cursor-pointer transition-all ${
+                  selectedTargetGroupId === group.id
+                    ? "bg-primary/10 hover:bg-primary/15"
+                    : "hover:bg-muted/50"
+                }`}
+                style={
+                  selectedTargetGroupId === group.id
+                    ? { boxShadow: "inset 4px 0 0 0 hsl(var(--primary))" }
+                    : undefined
+                }
+                onClick={() => onSelectTargetGroup(group.id)}
+              >
                 <TableCell className="font-medium">{group.name}</TableCell>
                 <TableCell className="truncate max-w-0">
                   {group.description}
