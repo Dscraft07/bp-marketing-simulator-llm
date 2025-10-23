@@ -58,6 +58,22 @@ Deno.serve(async (req) => {
     console.log(`Target Group: ${simulation.target_group_snapshot.name}`);
     console.log(`Persona Count: ${simulation.target_group_snapshot.persona_count}`);
 
+    // Update simulation status to 'running'
+    const { error: updateError } = await supabase
+      .from("simulations")
+      .update({ status: "running" })
+      .eq("id", simulationId);
+
+    if (updateError) {
+      console.error("Failed to update simulation status to running:", updateError);
+      return new Response(
+        JSON.stringify({ error: "Failed to update simulation status" }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log(`Simulation status updated to 'running'`);
+
     // TODO: Implement LLM simulation logic here
     // - Generate personas based on target group description
     // - For each persona, generate response to campaign content using x.ai API (grok-beta)
@@ -75,8 +91,9 @@ Deno.serve(async (req) => {
     );
   } catch (error) {
     console.error("Error in run-llm-simulation:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return new Response(
-      JSON.stringify({ error: "Internal server error", details: error.message }),
+      JSON.stringify({ error: "Internal server error", details: errorMessage }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }

@@ -92,15 +92,25 @@ export async function runSimulation(
       };
     }
 
-    // TODO: Call Supabase Edge Function to run the simulation
-    // This will be implemented in the next phase
-    // Example:
-    // const { data: edgeResponse, error: edgeError } = await supabase.functions.invoke(
-    //   'run-llm-simulation',
-    //   {
-    //     body: { simulationId: simulation.id }
-    //   }
-    // );
+    // Call Supabase Edge Function to run the simulation
+    try {
+      const { data: edgeResponse, error: edgeError } = await supabase.functions.invoke(
+        'run-llm-simulation',
+        {
+          body: { simulationId: simulation.id }
+        }
+      );
+
+      if (edgeError) {
+        console.error("Edge Function error:", edgeError);
+        // Don't fail the whole operation - simulation is created, just log the error
+      } else {
+        console.log("Edge Function response:", edgeResponse);
+      }
+    } catch (edgeError) {
+      console.error("Failed to invoke Edge Function:", edgeError);
+      // Don't fail the whole operation - simulation is created
+    }
 
     // Revalidate the dashboard to show updated data
     revalidatePath("/dashboard");
