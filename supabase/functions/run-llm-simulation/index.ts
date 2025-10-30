@@ -35,7 +35,7 @@ function buildPrompts(
 CRITICAL INSTRUCTIONS:
 1. Generate exactly ${personaCount} unique personas based on the provided target group description
 2. Each persona must be distinct with their own characteristics, demographics, and mindset
-3. For each persona, provide a detailed reaction to the marketing campaign content
+3. For each persona, write their reaction as a FIRST-PERSON COMMENT (using "I", "my", "me") - as if they are directly commenting on the campaign
 4. Analyze sentiment (positive, negative, or neutral), relevance, and toxicity
 5. Your response MUST be valid JSON only, no additional text or explanation
 
@@ -44,13 +44,17 @@ OUTPUT FORMAT (strict JSON):
   "reactions": [
     {
       "persona_name": "Descriptive persona name (e.g., 'Tech-Savvy Millennial', 'Budget-Conscious Parent')",
-      "content": "Detailed reaction to the campaign - what they think, feel, and whether they would engage. Include persona's background, why they react this way, and specific opinions about the campaign.",
+      "content": "Write as a FIRST-PERSON comment/reaction in the persona's voice. Use 'I', 'my', 'me'. Write naturally as if this person is commenting on social media or leaving feedback. Include their honest thoughts, feelings, and whether they would engage with this campaign. Be authentic and conversational.",
       "sentiment": "positive|negative|neutral",
       "relevance_score": 0.85,
       "toxicity_score": 0.05
     }
   ]
 }
+
+EXAMPLE OF CORRECT FIRST-PERSON FORMAT:
+❌ BAD (third person): "Sarah, a 28-year-old teacher, finds this campaign interesting because..."
+✅ GOOD (first person): "I'm a 28-year-old teacher and I find this really interesting! As someone who..."
 
 SCORING GUIDELINES:
 - relevance_score (0.0-1.0): How relevant is this campaign to the persona's needs/interests
@@ -63,8 +67,10 @@ SCORING GUIDELINES:
   * 0.6-1.0: Inappropriate, toxic (avoid unless justified)
 
 Requirements:
+- ALL reactions MUST be in first-person (I/my/me), never third-person (he/she/they)
 - Be realistic and honest - not all personas will react positively
-- Include specific details about why each persona reacts the way they do
+- Write in a natural, conversational tone as if posting a comment
+- Include specific details about why they feel this way
 - Consider demographics, psychographics, and behavioral patterns
 - Scores should correlate with sentiment and content
 - Response must be parseable JSON with no markdown formatting or code blocks`;
@@ -80,7 +86,7 @@ TARGET GROUP: ${targetGroupName}
 TARGET GROUP DESCRIPTION:
 ${targetGroupDescription}
 
-Generate exactly ${personaCount} unique personas from this target group and their reactions to the campaign. Return only the JSON response as specified in the system instructions.`;
+Generate exactly ${personaCount} unique personas from this target group. Each persona should write their reaction in FIRST PERSON (using "I", "my", "me") as if they are commenting directly on this campaign. Make it sound like authentic social media comments or feedback. Return only the JSON response as specified in the system instructions.`;
 
   return { systemPrompt, userPrompt };
 }
