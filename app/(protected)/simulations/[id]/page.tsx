@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { SimulationResults } from "./components/SimulationResults";
 
 interface SimulationPageProps {
   params: Promise<{
@@ -26,6 +27,16 @@ interface Simulation {
     description: string;
     persona_count: number;
   };
+}
+
+interface SimulationResult {
+  id: string;
+  persona_name: string;
+  content: string;
+  sentiment: "positive" | "negative" | "neutral";
+  relevance_score: number | null;
+  toxicity_score: number | null;
+  created_at: string;
 }
 
 async function getSimulation(id: string): Promise<Simulation | null> {
@@ -53,6 +64,25 @@ async function getSimulation(id: string): Promise<Simulation | null> {
   return data as Simulation;
 }
 
+async function getSimulationResults(
+  simulationId: string
+): Promise<SimulationResult[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("simulation_results")
+    .select("*")
+    .eq("simulation_id", simulationId)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    console.error("Failed to fetch simulation results:", error);
+    return [];
+  }
+
+  return (data || []) as SimulationResult[];
+}
+
 function getStatusBadge(status: Simulation["status"]) {
   const variants: Record<
     Simulation["status"],
@@ -70,7 +100,10 @@ function getStatusBadge(status: Simulation["status"]) {
 
 export default async function SimulationPage({ params }: SimulationPageProps) {
   const { id } = await params;
-  const simulation = await getSimulation(id);
+  const [simulation, initialResults] = await Promise.all([
+    getSimulation(id),
+    getSimulationResults(id),
+  ]);
 
   if (!simulation) {
     notFound();
@@ -194,36 +227,14 @@ export default async function SimulationPage({ params }: SimulationPageProps) {
         </CardContent>
       </Card>
 
-      {/* Placeholder for results */}
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>Persona Reactions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {simulation.status === "pending" && (
-            <p className="text-muted-foreground text-center py-8">
-              Simulation is pending. Results will appear here once the simulation
-              starts.
-            </p>
-          )}
-          {simulation.status === "running" && (
-            <p className="text-muted-foreground text-center py-8">
-              Simulation is currently running. Results will appear here once
-              completed.
-            </p>
-          )}
-          {simulation.status === "failed" && (
-            <p className="text-destructive text-center py-8">
-              Simulation failed. No results available.
-            </p>
-          )}
-          {simulation.status === "completed" && (
-            <p className="text-muted-foreground text-center py-8">
-              Results will be displayed here. (Implementation pending)
-            </p>
-          )}
-        </CardContent>
-      </Card>
+      {/* Real-time Results */}
+      <div className="mt-6">
+        <SimulationResults
+          simulationId={simulation.id}
+          initialResults={initialResults}
+          simulationStatus={simulation.status}
+        />
+      </div>
     </div>
   );
 }
