@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DiscussionThread } from "./DiscussionThread";
+import { AnalysisSummary } from "./AnalysisSummary";
 
 interface SimulationResult {
   id: string;
@@ -89,37 +90,40 @@ export function SimulationResults({
 
   if (simulationStatus === "running") {
     return (
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Persona Reactions</CardTitle>
-            {isSubscribed && (
-              <Badge variant="outline" className="text-green-600">
-                🟢 Live
-              </Badge>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent>
-          {results.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground mb-2">
-                Simulation is running... Waiting for results
-              </p>
-              <div className="flex justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <>
+        {results.length > 0 && <AnalysisSummary results={results} />}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Persona Reactions</CardTitle>
+              {isSubscribed && (
+                <Badge variant="outline" className="text-green-600">
+                  🟢 Live
+                </Badge>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            {results.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground mb-2">
+                  Simulation is running... Waiting for results
+                </p>
+                <div className="flex justify-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
               </div>
-            </div>
-          ) : (
-            <div>
-              <p className="text-sm text-muted-foreground mb-6">
-                Receiving results in real-time... ({results.length} received)
-              </p>
-              <DiscussionThread results={results} />
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            ) : (
+              <div>
+                <p className="text-sm text-muted-foreground mb-6">
+                  Receiving results in real-time... ({results.length} received)
+                </p>
+                <DiscussionThread results={results} />
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </>
     );
   }
 
@@ -140,19 +144,22 @@ export function SimulationResults({
 
   // Completed
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Persona Reactions ({results.length})</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {results.length === 0 ? (
-          <p className="text-muted-foreground text-center py-8">
-            No results found for this simulation.
-          </p>
-        ) : (
-          <DiscussionThread results={results} />
-        )}
-      </CardContent>
-    </Card>
+    <>
+      {results.length > 0 && <AnalysisSummary results={results} />}
+      <Card>
+        <CardHeader>
+          <CardTitle>Persona Reactions ({results.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {results.length === 0 ? (
+            <p className="text-muted-foreground text-center py-8">
+              No results found for this simulation.
+            </p>
+          ) : (
+            <DiscussionThread results={results} />
+          )}
+        </CardContent>
+      </Card>
+    </>
   );
 }
