@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { DiscussionThread } from "./DiscussionThread";
 
 interface SimulationResult {
   id: string;
@@ -19,24 +20,6 @@ interface SimulationResultsProps {
   simulationId: string;
   initialResults: SimulationResult[];
   simulationStatus: "pending" | "running" | "completed" | "failed";
-}
-
-function getSentimentBadge(sentiment: SimulationResult["sentiment"]) {
-  const variants: Record<
-    SimulationResult["sentiment"],
-    { variant: "default" | "secondary" | "destructive"; label: string; color: string }
-  > = {
-    positive: { variant: "default", label: "Positive", color: "text-green-600" },
-    neutral: { variant: "secondary", label: "Neutral", color: "text-gray-600" },
-    negative: { variant: "destructive", label: "Negative", color: "text-red-600" },
-  };
-
-  const config = variants[sentiment];
-  return (
-    <Badge variant={config.variant}>
-      <span className={config.color}>{config.label}</span>
-    </Badge>
-  );
 }
 
 export function SimulationResults({
@@ -128,13 +111,11 @@ export function SimulationResults({
               </div>
             </div>
           ) : (
-            <div className="space-y-4">
-              <p className="text-sm text-muted-foreground mb-4">
+            <div>
+              <p className="text-sm text-muted-foreground mb-6">
                 Receiving results in real-time... ({results.length} received)
               </p>
-              {results.map((result) => (
-                <ResultCard key={result.id} result={result} />
-              ))}
+              <DiscussionThread results={results} />
             </div>
           )}
         </CardContent>
@@ -169,53 +150,9 @@ export function SimulationResults({
             No results found for this simulation.
           </p>
         ) : (
-          <div className="space-y-4">
-            {results.map((result) => (
-              <ResultCard key={result.id} result={result} />
-            ))}
-          </div>
+          <DiscussionThread results={results} />
         )}
       </CardContent>
     </Card>
-  );
-}
-
-function ResultCard({ result }: { result: SimulationResult }) {
-  return (
-    <div className="border rounded-lg p-4 space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
-      <div className="flex items-start justify-between">
-        <div>
-          <h4 className="font-semibold text-lg">{result.persona_name}</h4>
-          <p className="text-xs text-muted-foreground">
-            {new Date(result.created_at).toLocaleString("en-US", {
-              month: "short",
-              day: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </p>
-        </div>
-        {getSentimentBadge(result.sentiment)}
-      </div>
-
-      <p className="text-sm whitespace-pre-wrap leading-relaxed">
-        {result.content}
-      </p>
-
-      <div className="flex gap-4 text-xs text-muted-foreground pt-2 border-t">
-        {result.relevance_score !== null && (
-          <div>
-            <span className="font-medium">Relevance:</span>{" "}
-            {(result.relevance_score * 100).toFixed(0)}%
-          </div>
-        )}
-        {result.toxicity_score !== null && (
-          <div>
-            <span className="font-medium">Toxicity:</span>{" "}
-            {(result.toxicity_score * 100).toFixed(0)}%
-          </div>
-        )}
-      </div>
-    </div>
   );
 }
