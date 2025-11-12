@@ -63,3 +63,40 @@ export async function createTargetGroup(formData: FormData) {
     data,
   };
 }
+
+export async function deleteTargetGroup(targetGroupId: string) {
+  const supabase = await createClient();
+
+  // Check if user is authenticated
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      success: false,
+      error: "Unauthorized. Please sign in to delete a target group.",
+    };
+  }
+
+  // Delete target group (must be owned by user)
+  const { error } = await supabase
+    .from("target_groups")
+    .delete()
+    .eq("id", targetGroupId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    console.error("Supabase error:", error);
+    return {
+      success: false,
+      error: `Failed to delete target group: ${error.message}`,
+    };
+  }
+
+  revalidatePath("/dashboard");
+
+  return {
+    success: true,
+  };
+}

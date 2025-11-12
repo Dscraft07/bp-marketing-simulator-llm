@@ -59,3 +59,40 @@ export async function createCampaign(formData: FormData) {
     data,
   };
 }
+
+export async function deleteCampaign(campaignId: string) {
+  const supabase = await createClient();
+
+  // Check if user is authenticated
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      success: false,
+      error: "Unauthorized. Please sign in to delete a campaign.",
+    };
+  }
+
+  // Delete campaign (must be owned by user)
+  const { error } = await supabase
+    .from("campaigns")
+    .delete()
+    .eq("id", campaignId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    console.error("Supabase error:", error);
+    return {
+      success: false,
+      error: `Failed to delete campaign: ${error.message}`,
+    };
+  }
+
+  revalidatePath("/dashboard");
+
+  return {
+    success: true,
+  };
+}
