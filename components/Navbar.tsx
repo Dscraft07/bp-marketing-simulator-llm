@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { User, LogOut, LayoutDashboard } from "lucide-react";
+import { User, LogOut, LayoutDashboard, History } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export function Navbar() {
@@ -33,6 +33,10 @@ export function Navbar() {
               <DropdownMenuItem onClick={() => router.push("/dashboard")}>
                 <LayoutDashboard className="mr-2 h-4 w-4" />
                 Dashboard
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push("/simulations")}>
+                <History className="mr-2 h-4 w-4" />
+                Simulations
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => router.push("/profile")}>
                 <User className="mr-2 h-4 w-4" />
