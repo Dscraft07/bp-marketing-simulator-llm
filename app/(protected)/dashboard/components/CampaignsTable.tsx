@@ -76,8 +76,7 @@ export function CampaignsTable({
       } else {
         toast.error(result.error || "Failed to delete campaign");
       }
-    } catch (error) {
-      console.error("Error deleting campaign:", error);
+    } catch {
       toast.error("An unexpected error occurred");
     } finally {
       setIsDeleting(false);

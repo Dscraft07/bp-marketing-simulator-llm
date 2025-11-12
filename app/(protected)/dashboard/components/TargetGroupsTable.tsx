@@ -77,8 +77,7 @@ export function TargetGroupsTable({
       } else {
         toast.error(result.error || "Failed to delete target group");
       }
-    } catch (error) {
-      console.error("Error deleting target group:", error);
+    } catch {
       toast.error("An unexpected error occurred");
     } finally {
       setIsDeleting(false);

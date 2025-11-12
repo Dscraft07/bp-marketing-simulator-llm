@@ -46,7 +46,6 @@ export function SimulationResults({
           filter: `simulation_id=eq.${simulationId}`,
         },
         (payload) => {
-          console.log("New result received via Realtime:", payload);
           const newResult = payload.new as SimulationResult;
 
           // Add new result to the list
@@ -60,7 +59,6 @@ export function SimulationResults({
         }
       )
       .subscribe((status) => {
-        console.log("Realtime subscription status:", status);
         if (status === "SUBSCRIBED") {
           setIsSubscribed(true);
         }
@@ -68,7 +66,6 @@ export function SimulationResults({
 
     // Cleanup subscription on unmount
     return () => {
-      console.log("Unsubscribing from Realtime");
       supabase.removeChannel(channel);
     };
   }, [simulationId]);

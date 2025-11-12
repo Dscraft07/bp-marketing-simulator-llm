@@ -74,8 +74,7 @@ export function DashboardClient({
       } else {
         toast.error(result.error || "Failed to start simulation");
       }
-    } catch (error) {
-      console.error("Error running simulation:", error);
+    } catch {
       toast.error("An unexpected error occurred");
     } finally {
       setIsRunning(false);
