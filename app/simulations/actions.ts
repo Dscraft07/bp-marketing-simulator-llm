@@ -127,3 +127,41 @@ export async function runSimulation(
     };
   }
 }
+
+export async function deleteSimulation(simulationId: string) {
+  const supabase = await createClient();
+
+  // Check if user is authenticated
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      success: false,
+      error: "Unauthorized. Please sign in to delete a simulation.",
+    };
+  }
+
+  // Delete simulation (must be owned by user)
+  // This will also cascade delete simulation_results due to FK constraint
+  const { error } = await supabase
+    .from("simulations")
+    .delete()
+    .eq("id", simulationId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    console.error("Supabase error:", error);
+    return {
+      success: false,
+      error: `Failed to delete simulation: ${error.message}`,
+    };
+  }
+
+  revalidatePath("/simulations");
+
+  return {
+    success: true,
+  };
+}

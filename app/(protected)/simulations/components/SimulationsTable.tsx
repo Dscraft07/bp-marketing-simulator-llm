@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import {
   Table,
@@ -9,9 +10,28 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, MoreHorizontal, Trash2 } from "lucide-react";
+import { deleteSimulation } from "@/app/simulations/actions";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface Simulation {
   id: string;
@@ -49,6 +69,40 @@ function getStatusBadge(status: Simulation["status"]) {
 }
 
 export function SimulationsTable({ simulations }: SimulationsTableProps) {
+  const router = useRouter();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [simulationToDelete, setSimulationToDelete] = useState<Simulation | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteClick = (simulation: Simulation, e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setSimulationToDelete(simulation);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!simulationToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      const result = await deleteSimulation(simulationToDelete.id);
+
+      if (result.success) {
+        toast.success("Simulation deleted successfully");
+        setDeleteDialogOpen(false);
+        setSimulationToDelete(null);
+        router.refresh();
+      } else {
+        toast.error(result.error || "Failed to delete simulation");
+      }
+    } catch {
+      toast.error("An unexpected error occurred");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   if (simulations.length === 0) {
     return (
       <div className="border rounded-lg p-8 text-center">
@@ -113,12 +167,28 @@ export function SimulationsTable({ simulations }: SimulationsTableProps) {
                     {finishedDate || "-"}
                   </TableCell>
                   <TableCell>
-                    <Button asChild variant="ghost" size="sm">
-                      <Link href={`/simulations/${simulation.id}`}>
-                        <ExternalLink className="h-4 w-4 mr-1" />
-                        View
-                      </Link>
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem asChild>
+                          <Link href={`/simulations/${simulation.id}`}>
+                            <ExternalLink className="mr-2 h-4 w-4" />
+                            View
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={(e) => handleDeleteClick(simulation, e)}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               );
@@ -126,6 +196,29 @@ export function SimulationsTable({ simulations }: SimulationsTableProps) {
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the simulation for campaign &quot;
+              {simulationToDelete?.campaign_snapshot.name}&quot;. This action
+              cannot be undone and will also delete all results.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
