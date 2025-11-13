@@ -140,7 +140,12 @@ export function TargetGroupForm() {
                 )}
                 {isSubmitting ? "Creating..." : "Create Target Group"}
               </Button>
-              <Button type="button" variant="outline" disabled={isSubmitting}>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isSubmitting}
+                onClick={() => router.push("/dashboard")}
+              >
                 Cancel
               </Button>
             </div>
