@@ -2,13 +2,6 @@
 
 import Link from "next/link";
 import { LogoutButton } from "@/components/logout-button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { User, LogOut, LayoutDashboard, History } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -22,35 +15,38 @@ export function Navbar() {
         <Link href="/dashboard" className="font-semibold text-base sm:text-lg">
           Marketing Simulator
         </Link>
-        <div className="flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full">
-                <User className="h-5 w-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={() => router.push("/dashboard")}>
-                <LayoutDashboard className="mr-2 h-4 w-4" />
-                Dashboard
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => router.push("/simulations")}>
-                <History className="mr-2 h-4 w-4" />
-                Simulations
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => router.push("/profile")}>
-                <User className="mr-2 h-4 w-4" />
-                Profile
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <div className="w-full">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <LogoutButton />
-                </div>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <div className="flex items-center gap-1 sm:gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push("/dashboard")}
+            className="gap-1.5"
+          >
+            <LayoutDashboard className="h-4 w-4" />
+            <span className="hidden sm:inline">Dashboard</span>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push("/simulations")}
+            className="gap-1.5"
+          >
+            <History className="h-4 w-4" />
+            <span className="hidden sm:inline">Simulations</span>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push("/profile")}
+            className="gap-1.5"
+          >
+            <User className="h-4 w-4" />
+            <span className="hidden sm:inline">Profile</span>
+          </Button>
+          <div className="flex items-center">
+            <LogOut className="h-4 w-4 mr-1.5" />
+            <LogoutButton />
+          </div>
         </div>
       </div>
     </nav>
