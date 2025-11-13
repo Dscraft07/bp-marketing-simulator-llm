@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from "recharts";
+import { Badge } from "@/components/ui/badge";
 
 interface SimulationResult {
   id: string;
@@ -77,117 +77,95 @@ export function AnalysisSummary({ results }: AnalysisSummaryProps) {
   };
 
   return (
-    <Card className="mb-6">
-      <CardHeader>
-        <CardTitle>Analysis</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Summary Metrics */}
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-muted-foreground">
-              Total Reactions
-            </p>
-            <p className="text-3xl font-bold">{results.length}</p>
-          </div>
-
-          {averageRelevance !== null && (
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-muted-foreground">
-                Avg. Relevance
-              </p>
-              <div className="flex items-baseline gap-2">
-                <p className="text-3xl font-bold">
-                  {(averageRelevance * 100).toFixed(0)}%
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {averageRelevance >= 0.7
-                    ? "High"
-                    : averageRelevance >= 0.4
-                    ? "Medium"
-                    : "Low"}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {averageToxicity !== null && (
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-muted-foreground">
-                Avg. Toxicity
-              </p>
-              <div className="flex items-baseline gap-2">
-                <p className="text-3xl font-bold">
-                  {(averageToxicity * 100).toFixed(0)}%
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {averageToxicity <= 0.2
-                    ? "Low"
-                    : averageToxicity <= 0.5
-                    ? "Medium"
-                    : "High"}
-                </p>
-              </div>
-            </div>
-          )}
+    <div className="space-y-4">
+      {/* Summary Metrics - Compact Cards */}
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="p-4 rounded-lg border bg-gradient-to-br from-blue-50 to-background dark:from-blue-950/20">
+          <p className="text-xs font-medium text-muted-foreground mb-1">
+            Total Reactions
+          </p>
+          <p className="text-2xl font-bold">{results.length}</p>
         </div>
 
-        {/* Sentiment Distribution Chart */}
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium">Sentiment Distribution</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={sentimentData}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis
-                dataKey="sentiment"
-                className="text-xs"
-                tick={{ fill: "hsl(var(--muted-foreground))" }}
-              />
-              <YAxis
-                className="text-xs"
-                tick={{ fill: "hsl(var(--muted-foreground))" }}
-              />
-              <Tooltip
-                cursor={{ fill: "transparent" }}
-                contentStyle={{
-                  backgroundColor: "hsl(var(--background))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "0.5rem",
-                }}
-                labelStyle={{ color: "hsl(var(--foreground))" }}
-              />
-              <Legend />
-              <Bar dataKey="count" name="Number of Reactions" radius={[8, 8, 0, 0]}>
-                {sentimentData.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COLORS[entry.sentiment as keyof typeof COLORS]}
-                  />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+        {averageRelevance !== null && (
+          <div className="p-4 rounded-lg border bg-gradient-to-br from-green-50 to-background dark:from-green-950/20">
+            <p className="text-xs font-medium text-muted-foreground mb-1">
+              Avg. Relevance
+            </p>
+            <div className="flex items-baseline gap-2">
+              <p className="text-2xl font-bold">
+                {(averageRelevance * 100).toFixed(0)}%
+              </p>
+              <Badge variant="outline" className="text-xs">
+                {averageRelevance >= 0.7
+                  ? "High"
+                  : averageRelevance >= 0.4
+                  ? "Medium"
+                  : "Low"}
+              </Badge>
+            </div>
+          </div>
+        )}
 
-          {/* Percentage breakdown */}
-          <div className="grid grid-cols-3 gap-2 pt-2">
+        {averageToxicity !== null && (
+          <div className="p-4 rounded-lg border bg-gradient-to-br from-orange-50 to-background dark:from-orange-950/20">
+            <p className="text-xs font-medium text-muted-foreground mb-1">
+              Avg. Toxicity
+            </p>
+            <div className="flex items-baseline gap-2">
+              <p className="text-2xl font-bold">
+                {(averageToxicity * 100).toFixed(0)}%
+              </p>
+              <Badge variant="outline" className="text-xs">
+                {averageToxicity <= 0.2
+                  ? "Low"
+                  : averageToxicity <= 0.5
+                  ? "Medium"
+                  : "High"}
+              </Badge>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Sentiment Distribution - Compact */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Sentiment Distribution</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {/* Sentiment bars */}
+          <div className="space-y-2">
             {sentimentData.map((item) => (
-              <div
-                key={item.sentiment}
-                className="flex items-center gap-2 text-sm"
-              >
-                <div
-                  className="w-3 h-3 rounded"
-                  style={{
-                    backgroundColor: COLORS[item.sentiment as keyof typeof COLORS],
-                  }}
-                />
-                <span className="font-medium">{item.sentiment}:</span>
-                <span className="text-muted-foreground">{item.percentage}%</span>
+              <div key={item.sentiment} className="space-y-1">
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-3 h-3 rounded"
+                      style={{
+                        backgroundColor: COLORS[item.sentiment as keyof typeof COLORS],
+                      }}
+                    />
+                    <span className="font-medium">{item.sentiment}</span>
+                  </div>
+                  <span className="text-muted-foreground">
+                    {item.count} ({item.percentage}%)
+                  </span>
+                </div>
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all"
+                    style={{
+                      width: `${item.percentage}%`,
+                      backgroundColor: COLORS[item.sentiment as keyof typeof COLORS],
+                    }}
+                  />
+                </div>
               </div>
             ))}
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

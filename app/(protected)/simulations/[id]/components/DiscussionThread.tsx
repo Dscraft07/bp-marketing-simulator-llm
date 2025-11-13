@@ -2,7 +2,6 @@
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
 
 interface SimulationResult {
   id: string;
@@ -78,95 +77,91 @@ export function DiscussionThread({ results }: DiscussionThreadProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {results.map((result, index) => (
         <div
           key={result.id}
-          className="animate-in fade-in slide-in-from-bottom-3 duration-500"
-          style={{ animationDelay: `${index * 100}ms` }}
+          className="animate-in fade-in slide-in-from-bottom-2 duration-300"
+          style={{ animationDelay: `${Math.min(index * 50, 500)}ms` }}
         >
-          <div className="flex gap-4">
+          <div className="flex gap-3 p-4 rounded-lg border bg-card hover:shadow-sm transition-all">
             {/* Avatar */}
             <div className="flex-shrink-0">
-              <Avatar className={`${getAvatarColor(result.persona_name)} text-white`}>
-                <AvatarFallback className="bg-transparent text-white font-semibold">
+              <Avatar className={`h-10 w-10 ${getAvatarColor(result.persona_name)} text-white`}>
+                <AvatarFallback className="bg-transparent text-white font-semibold text-sm">
                   {getPersonaInitials(result.persona_name)}
                 </AvatarFallback>
               </Avatar>
             </div>
 
-            {/* Comment Content */}
-            <Card className="flex-1 p-4 hover:shadow-md transition-shadow">
-              <div className="space-y-3">
-                {/* Header */}
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-base">
-                      {result.persona_name}
-                    </h4>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(result.created_at).toLocaleString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
-                  </div>
-                  {getSentimentBadge(result.sentiment)}
-                </div>
-
-                {/* Comment Text */}
-                <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                  {result.content}
+            {/* Content */}
+            <div className="flex-1 min-w-0">
+              {/* Header */}
+              <div className="flex items-center gap-2 mb-1">
+                <h4 className="font-semibold text-sm">
+                  {result.persona_name}
+                </h4>
+                <span className="text-xs text-muted-foreground">•</span>
+                <p className="text-xs text-muted-foreground">
+                  {new Date(result.created_at).toLocaleString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
                 </p>
-
-                {/* Metrics */}
-                {(result.relevance_score !== null || result.toxicity_score !== null) && (
-                  <div className="flex gap-4 pt-2 border-t text-xs">
-                    {result.relevance_score !== null && (
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-muted-foreground">Relevance:</span>
-                        <div className="flex items-center gap-1">
-                          <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-primary rounded-full transition-all"
-                              style={{ width: `${result.relevance_score * 100}%` }}
-                            />
-                          </div>
-                          <span className="font-medium min-w-[3ch] text-right">
-                            {Math.round(result.relevance_score * 100)}%
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                    {result.toxicity_score !== null && (
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-muted-foreground">Toxicity:</span>
-                        <div className="flex items-center gap-1">
-                          <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
-                            <div
-                              className={`h-full rounded-full transition-all ${
-                                result.toxicity_score > 0.5
-                                  ? "bg-red-500"
-                                  : result.toxicity_score > 0.3
-                                  ? "bg-yellow-500"
-                                  : "bg-green-500"
-                              }`}
-                              style={{ width: `${result.toxicity_score * 100}%` }}
-                            />
-                          </div>
-                          <span className="font-medium min-w-[3ch] text-right">
-                            {Math.round(result.toxicity_score * 100)}%
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
+                {getSentimentBadge(result.sentiment)}
               </div>
-            </Card>
+
+              {/* Comment Text */}
+              <p className="text-sm leading-relaxed whitespace-pre-wrap mb-2">
+                {result.content}
+              </p>
+
+              {/* Metrics */}
+              {(result.relevance_score !== null || result.toxicity_score !== null) && (
+                <div className="flex gap-4 text-xs">
+                  {result.relevance_score !== null && (
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-muted-foreground">Relevance:</span>
+                      <div className="flex items-center gap-1">
+                        <div className="w-12 h-1.5 bg-muted rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-primary rounded-full transition-all"
+                            style={{ width: `${result.relevance_score * 100}%` }}
+                          />
+                        </div>
+                        <span className="font-medium text-xs">
+                          {Math.round(result.relevance_score * 100)}%
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  {result.toxicity_score !== null && (
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-muted-foreground">Toxicity:</span>
+                      <div className="flex items-center gap-1">
+                        <div className="w-12 h-1.5 bg-muted rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all ${
+                              result.toxicity_score > 0.5
+                                ? "bg-red-500"
+                                : result.toxicity_score > 0.3
+                                ? "bg-yellow-500"
+                                : "bg-green-500"
+                            }`}
+                            style={{ width: `${result.toxicity_score * 100}%` }}
+                          />
+                        </div>
+                        <span className="font-medium text-xs">
+                          {Math.round(result.toxicity_score * 100)}%
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       ))}

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DiscussionThread } from "./DiscussionThread";
 import { AnalysisSummary } from "./AnalysisSummary";
@@ -72,91 +71,75 @@ export function SimulationResults({
 
   if (simulationStatus === "pending") {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Persona Reactions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground text-center py-8">
-            Simulation is pending. Results will appear here once the simulation starts.
-          </p>
-        </CardContent>
-      </Card>
+      <div className="text-center py-12">
+        <p className="text-muted-foreground">
+          Simulation is pending. Results will appear here once it starts.
+        </p>
+      </div>
     );
   }
 
   if (simulationStatus === "running") {
     return (
-      <>
+      <div className="space-y-6">
         {results.length > 0 && <AnalysisSummary results={results} />}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Persona Reactions</CardTitle>
-              {isSubscribed && (
-                <Badge variant="outline" className="text-green-600">
-                  🟢 Live
-                </Badge>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent>
-            {results.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground mb-2">
-                  Simulation is running... Waiting for results
-                </p>
-                <div className="flex justify-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                </div>
-              </div>
-            ) : (
-              <div>
-                <p className="text-sm text-muted-foreground mb-6">
-                  Receiving results in real-time... ({results.length} received)
-                </p>
-                <DiscussionThread results={results} />
-              </div>
+
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold">
+              Persona Reactions {results.length > 0 && `(${results.length})`}
+            </h2>
+            {isSubscribed && (
+              <Badge variant="outline" className="text-green-600 border-green-600">
+                <span className="mr-1.5">🟢</span> Live
+              </Badge>
             )}
-          </CardContent>
-        </Card>
-      </>
+          </div>
+
+          {results.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground mb-3">
+                Simulation is running... Waiting for reactions
+              </p>
+              <div className="flex justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            </div>
+          ) : (
+            <DiscussionThread results={results} />
+          )}
+        </div>
+      </div>
     );
   }
 
   if (simulationStatus === "failed") {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Persona Reactions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-destructive text-center py-8">
-            Simulation failed. No results available.
-          </p>
-        </CardContent>
-      </Card>
+      <div className="text-center py-12">
+        <p className="text-destructive">
+          Simulation failed. No results available.
+        </p>
+      </div>
     );
   }
 
   // Completed
   return (
-    <>
+    <div className="space-y-6">
       {results.length > 0 && <AnalysisSummary results={results} />}
-      <Card>
-        <CardHeader>
-          <CardTitle>Persona Reactions ({results.length})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {results.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">
-              No results found for this simulation.
-            </p>
-          ) : (
-            <DiscussionThread results={results} />
-          )}
-        </CardContent>
-      </Card>
-    </>
+
+      <div>
+        <h2 className="text-xl font-semibold mb-4">
+          Persona Reactions ({results.length})
+        </h2>
+        {results.length === 0 ? (
+          <p className="text-muted-foreground text-center py-12">
+            No results found for this simulation.
+          </p>
+        ) : (
+          <DiscussionThread results={results} />
+        )}
+      </div>
+    </div>
   );
 }

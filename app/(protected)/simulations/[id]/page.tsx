@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { SimulationResults } from "./components/SimulationResults";
 
@@ -128,113 +128,69 @@ export default async function SimulationPage({ params }: SimulationPageProps) {
     : null;
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-2">
-          <h1 className="text-3xl font-bold">Simulation Details</h1>
-          {getStatusBadge(simulation.status)}
+    <div className="container mx-auto py-6 max-w-5xl">
+      {/* Hero Section */}
+      <div className="mb-8 p-6 bg-gradient-to-br from-primary/10 via-primary/5 to-background rounded-xl border">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="text-2xl font-bold">
+                {simulation.campaign_snapshot.name}
+              </h1>
+              {getStatusBadge(simulation.status)}
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {createdDate}
+              {finishedDate && ` • Finished ${finishedDate}`}
+            </p>
+          </div>
         </div>
-        <p className="text-muted-foreground">
-          Created on {createdDate}
-          {finishedDate && ` • Finished on ${finishedDate}`}
-        </p>
+
+        {/* Campaign Content */}
+        <div className="bg-background/50 rounded-lg p-4 mb-3">
+          <p className="text-sm text-muted-foreground mb-1">Campaign Message</p>
+          <p className="text-sm leading-relaxed whitespace-pre-wrap">
+            {simulation.campaign_snapshot.content}
+          </p>
+        </div>
+
+        {/* Compact Info Row */}
+        <div className="flex flex-wrap gap-4 text-sm">
+          <div className="flex items-center gap-1.5">
+            <span className="text-muted-foreground">Target:</span>
+            <span className="font-medium">
+              {simulation.target_group_snapshot.name}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-muted-foreground">Personas:</span>
+            <span className="font-medium">
+              {simulation.target_group_snapshot.persona_count}
+            </span>
+          </div>
+          {simulation.model && (
+            <div className="flex items-center gap-1.5">
+              <span className="text-muted-foreground">Model:</span>
+              <span className="font-medium">{simulation.model}</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {simulation.error_message && (
-        <Card className="mb-6 border-destructive">
-          <CardHeader>
-            <CardTitle className="text-destructive">Error</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm">{simulation.error_message}</p>
+        <Card className="mb-6 border-destructive bg-destructive/5">
+          <CardContent className="pt-6">
+            <p className="text-sm text-destructive">{simulation.error_message}</p>
           </CardContent>
         </Card>
       )}
 
-      <div className="grid gap-6 md:grid-cols-2 mb-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Campaign</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Name</p>
-              <p className="text-lg font-semibold">
-                {simulation.campaign_snapshot.name}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Content
-              </p>
-              <p className="text-sm whitespace-pre-wrap">
-                {simulation.campaign_snapshot.content}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Target Group</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Name</p>
-              <p className="text-lg font-semibold">
-                {simulation.target_group_snapshot.name}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Description
-              </p>
-              <p className="text-sm whitespace-pre-wrap">
-                {simulation.target_group_snapshot.description}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Persona Count
-              </p>
-              <p className="text-lg font-semibold">
-                {simulation.target_group_snapshot.persona_count}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Simulation Parameters</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-3">
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">Model</p>
-            <p className="text-sm">{simulation.model || "N/A"}</p>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">
-              Temperature
-            </p>
-            <p className="text-sm">{simulation.temperature ?? "N/A"}</p>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">Status</p>
-            <p className="text-sm capitalize">{simulation.status}</p>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Real-time Results */}
-      <div className="mt-6">
-        <SimulationResults
-          simulationId={simulation.id}
-          initialResults={initialResults}
-          simulationStatus={simulation.status}
-        />
-      </div>
+      <SimulationResults
+        simulationId={simulation.id}
+        initialResults={initialResults}
+        simulationStatus={simulation.status}
+      />
     </div>
   );
 }
