@@ -22,6 +22,7 @@ export async function createCampaign(formData: FormData) {
   const rawData = {
     name: formData.get("name"),
     content: formData.get("content"),
+    social_platform: formData.get("social_platform"),
   };
 
   const validationResult = campaignSchema.safeParse(rawData);
@@ -32,7 +33,7 @@ export async function createCampaign(formData: FormData) {
     };
   }
 
-  const { name, content } = validationResult.data;
+  const { name, content, social_platform } = validationResult.data;
 
   // Insert campaign into database
   const { data, error } = await supabase
@@ -40,6 +41,7 @@ export async function createCampaign(formData: FormData) {
     .insert({
       name,
       content,
+      social_platform,
       user_id: user.id,
     })
     .select()

@@ -21,6 +21,7 @@ interface Simulation {
   campaign_snapshot: {
     name: string;
     content: string;
+    social_platform?: string;
   };
   target_group_snapshot: {
     name: string;
@@ -98,6 +99,18 @@ function getStatusBadge(status: Simulation["status"]) {
   return <Badge variant={config.variant}>{config.label}</Badge>;
 }
 
+function getSocialPlatformLabel(platform?: string): string {
+  const labels: Record<string, string> = {
+    twitter: "Twitter / X",
+    facebook: "Facebook",
+    instagram: "Instagram",
+    linkedin: "LinkedIn",
+    tiktok: "TikTok",
+  };
+
+  return platform ? labels[platform] || platform : "Unknown";
+}
+
 export default async function SimulationPage({ params }: SimulationPageProps) {
   const { id } = await params;
   const [simulation, initialResults] = await Promise.all([
@@ -156,6 +169,12 @@ export default async function SimulationPage({ params }: SimulationPageProps) {
 
         {/* Compact Info Row */}
         <div className="flex flex-wrap gap-4 text-sm">
+          <div className="flex items-center gap-1.5">
+            <span className="text-muted-foreground">Platform:</span>
+            <span className="font-medium">
+              {getSocialPlatformLabel(simulation.campaign_snapshot.social_platform)}
+            </span>
+          </div>
           <div className="flex items-center gap-1.5">
             <span className="text-muted-foreground">Target:</span>
             <span className="font-medium">

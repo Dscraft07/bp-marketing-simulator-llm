@@ -26,18 +26,36 @@ interface LLMResponse {
 function buildPrompts(
   campaignName: string,
   campaignContent: string,
+  socialPlatform: string,
   targetGroupName: string,
   targetGroupDescription: string,
   personaCount: number
 ): { systemPrompt: string; userPrompt: string } {
-  const systemPrompt = `You are an expert marketing analyst specializing in consumer behavior and persona simulation. Your task is to generate realistic reactions from diverse personas to marketing campaigns.
+  // Map platform values to display names
+  const platformDisplayNames: Record<string, string> = {
+    twitter: "Twitter/X",
+    facebook: "Facebook",
+    instagram: "Instagram",
+    linkedin: "LinkedIn",
+    tiktok: "TikTok",
+  };
+
+  const platformName = platformDisplayNames[socialPlatform] || socialPlatform;
+
+  const systemPrompt = `You are an expert marketing analyst specializing in consumer behavior and persona simulation. Your task is to generate realistic reactions from diverse personas to marketing campaigns on ${platformName}.
 
 CRITICAL INSTRUCTIONS:
 1. Generate exactly ${personaCount} unique personas based on the provided target group description
 2. Each persona must be distinct with their own characteristics, demographics, and mindset
-3. For each persona, write their reaction as a FIRST-PERSON COMMENT (using "I", "my", "me") - as if they are directly commenting on the campaign
-4. Analyze sentiment (positive, negative, or neutral), relevance, and toxicity
-5. Your response MUST be valid JSON only, no additional text or explanation
+3. For each persona, write their reaction as a FIRST-PERSON COMMENT (using "I", "my", "me") - as if they are directly commenting on the campaign ON ${platformName.toUpperCase()}
+4. PLATFORM-SPECIFIC STYLE - Adapt comment style to ${platformName}:
+   ${socialPlatform === 'twitter' ? '- Keep comments concise (under 280 characters ideal), use casual tone, hashtags acceptable' : ''}
+   ${socialPlatform === 'facebook' ? '- More conversational, can be longer, emojis common, personal anecdotes welcome' : ''}
+   ${socialPlatform === 'instagram' ? '- Visual-focused reactions, use emojis, shorter comments, trendy language' : ''}
+   ${socialPlatform === 'linkedin' ? '- Professional tone, thoughtful insights, business-oriented perspective' : ''}
+   ${socialPlatform === 'tiktok' ? '- Very casual, Gen-Z style, short and punchy, trendy slang acceptable' : ''}
+5. Analyze sentiment (positive, negative, or neutral), relevance, and toxicity
+6. Your response MUST be valid JSON only, no additional text or explanation
 
 OUTPUT FORMAT (strict JSON):
 {
@@ -75,18 +93,21 @@ Requirements:
 - Scores should correlate with sentiment and content
 - Response must be parseable JSON with no markdown formatting or code blocks`;
 
-  const userPrompt = `Generate ${personaCount} persona reactions for the following marketing campaign:
+  const userPrompt = `Generate ${personaCount} persona reactions for the following marketing campaign that will be published on ${platformName}:
 
 CAMPAIGN NAME: ${campaignName}
 
 CAMPAIGN CONTENT:
 ${campaignContent}
 
+SOCIAL PLATFORM: ${platformName}
+(Adapt comment style, length, and tone to match typical ${platformName} user behavior)
+
 TARGET GROUP: ${targetGroupName}
 TARGET GROUP DESCRIPTION:
 ${targetGroupDescription}
 
-Generate exactly ${personaCount} unique personas from this target group. Each persona should write their reaction in FIRST PERSON (using "I", "my", "me") as if they are commenting directly on this campaign. Make it sound like authentic social media comments or feedback. Return only the JSON response as specified in the system instructions.`;
+Generate exactly ${personaCount} unique personas from this target group. Each persona should write their reaction in FIRST PERSON (using "I", "my", "me") as if they are commenting directly on this campaign ON ${platformName}. Make it sound like authentic ${platformName} comments with appropriate style, tone, and length for that platform. Return only the JSON response as specified in the system instructions.`;
 
   return { systemPrompt, userPrompt };
 }
@@ -234,6 +255,7 @@ Deno.serve(async (req) => {
     const { systemPrompt, userPrompt } = buildPrompts(
       simulation.campaign_snapshot.name,
       simulation.campaign_snapshot.content,
+      simulation.campaign_snapshot.social_platform || "twitter",
       simulation.target_group_snapshot.name,
       simulation.target_group_snapshot.description,
       simulation.target_group_snapshot.persona_count

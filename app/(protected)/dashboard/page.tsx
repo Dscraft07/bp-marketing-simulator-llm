@@ -5,6 +5,7 @@ interface Campaign {
   id: string;
   name: string;
   content: string;
+  social_platform: string;
   user_id: string;
   created_at: string;
 }

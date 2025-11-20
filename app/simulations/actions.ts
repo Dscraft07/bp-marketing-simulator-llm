@@ -62,6 +62,7 @@ export async function runSimulation(
     const campaignSnapshot = {
       name: campaign.name,
       content: campaign.content,
+      social_platform: campaign.social_platform,
     };
 
     const targetGroupSnapshot = {
