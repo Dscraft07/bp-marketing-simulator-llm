@@ -109,6 +109,27 @@ export function DashboardClient({
         </Button>
       </div>
 
+      {/* Social Platform Selection */}
+      <div className="mb-8 mt-6">
+        <h2 className="text-xl font-semibold mb-3">Social Media Platform</h2>
+        <div className="flex flex-wrap gap-3">
+          {socialPlatforms.map((platform) => (
+            <Button
+              key={platform.value}
+              type="button"
+              variant={selectedPlatform === platform.value ? "default" : "outline"}
+              className={cn(
+                "flex-1 min-w-[150px]",
+                selectedPlatform === platform.value && "ring-2 ring-primary"
+              )}
+              onClick={() => setSelectedPlatform(platform.value)}
+            >
+              {platform.label}
+            </Button>
+          ))}
+        </div>
+      </div>
+
       <div className="grid gap-6 md:grid-cols-2 mt-8">
         <div>
           <div className="flex justify-between items-center mb-4">
@@ -146,27 +167,6 @@ export function DashboardClient({
             selectedTargetGroupId={selectedTargetGroupId}
             onSelectTargetGroup={handleSelectTargetGroup}
           />
-        </div>
-      </div>
-
-      {/* Social Platform Selection */}
-      <div className="mt-8">
-        <h2 className="text-xl font-semibold mb-4">Social Media Platform</h2>
-        <div className="flex flex-wrap gap-3">
-          {socialPlatforms.map((platform) => (
-            <Button
-              key={platform.value}
-              type="button"
-              variant={selectedPlatform === platform.value ? "default" : "outline"}
-              className={cn(
-                "flex-1 min-w-[150px]",
-                selectedPlatform === platform.value && "ring-2 ring-primary"
-              )}
-              onClick={() => setSelectedPlatform(platform.value)}
-            >
-              {platform.label}
-            </Button>
-          ))}
         </div>
       </div>
     </div>
