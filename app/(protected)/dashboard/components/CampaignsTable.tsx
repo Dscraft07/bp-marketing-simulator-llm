@@ -20,7 +20,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Trash2 } from "lucide-react";
 import { deleteCampaign } from "@/app/campaigns/actions";
 import { toast } from "sonner";
@@ -30,20 +29,8 @@ interface Campaign {
   id: string;
   name: string;
   content: string;
-  social_platform: string;
   user_id: string;
   created_at: string;
-}
-
-function getSocialPlatformLabel(platform: string): string {
-  const labels: Record<string, string> = {
-    twitter: "Twitter/X",
-    facebook: "Facebook",
-    instagram: "Instagram",
-    linkedin: "LinkedIn",
-    tiktok: "TikTok",
-  };
-  return labels[platform] || platform;
 }
 
 interface CampaignsTableProps {
@@ -105,7 +92,6 @@ export function CampaignsTable({
           <TableHeader>
             <TableRow>
               <TableHead className="w-[200px]">Name</TableHead>
-              <TableHead className="w-[120px]">Platform</TableHead>
               <TableHead className="min-w-0">Content</TableHead>
               <TableHead className="w-[120px]">Created At</TableHead>
               <TableHead className="w-[80px]">Actions</TableHead>
@@ -128,11 +114,6 @@ export function CampaignsTable({
                 onClick={() => onSelectCampaign(campaign.id)}
               >
                 <TableCell className="font-medium">{campaign.name}</TableCell>
-                <TableCell>
-                  <Badge variant="outline" className="whitespace-nowrap">
-                    {getSocialPlatformLabel(campaign.social_platform)}
-                  </Badge>
-                </TableCell>
                 <TableCell className="truncate max-w-0">
                   {campaign.content}
                 </TableCell>

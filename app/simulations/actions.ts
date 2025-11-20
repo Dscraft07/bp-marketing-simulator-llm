@@ -11,7 +11,8 @@ interface RunSimulationResult {
 
 export async function runSimulation(
   campaignId: string,
-  targetGroupId: string
+  targetGroupId: string,
+  socialPlatform: string
 ): Promise<RunSimulationResult> {
   const supabase = await createClient();
 
@@ -62,7 +63,7 @@ export async function runSimulation(
     const campaignSnapshot = {
       name: campaign.name,
       content: campaign.content,
-      social_platform: campaign.social_platform,
+      social_platform: socialPlatform,
     };
 
     const targetGroupSnapshot = {

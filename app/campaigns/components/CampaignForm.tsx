@@ -20,13 +20,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { campaignSchema, type CampaignFormData, socialPlatforms } from "@/lib/validation/campaignSchema";
+import { campaignSchema, type CampaignFormData } from "@/lib/validation/campaignSchema";
 import { createCampaign } from "@/app/campaigns/actions";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 export function CampaignForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -37,7 +36,6 @@ export function CampaignForm() {
     defaultValues: {
       name: "",
       content: "",
-      social_platform: "twitter",
     },
   });
 
@@ -47,7 +45,6 @@ export function CampaignForm() {
     const formData = new FormData();
     formData.append("name", data.name);
     formData.append("content", data.content);
-    formData.append("social_platform", data.social_platform);
 
     const result = await createCampaign(formData);
 
@@ -80,35 +77,6 @@ export function CampaignForm() {
                   <FormLabel>Campaign Name</FormLabel>
                   <FormControl>
                     <Input placeholder="Enter campaign name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="social_platform"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Social Media Platform</FormLabel>
-                  <FormControl>
-                    <div className="flex flex-wrap gap-2">
-                      {socialPlatforms.map((platform) => (
-                        <Button
-                          key={platform.value}
-                          type="button"
-                          variant={field.value === platform.value ? "default" : "outline"}
-                          className={cn(
-                            "flex-1 min-w-[120px]",
-                            field.value === platform.value && "ring-2 ring-primary"
-                          )}
-                          onClick={() => field.onChange(platform.value)}
-                        >
-                          {platform.label}
-                        </Button>
-                      ))}
-                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -9,12 +9,12 @@ import { Plus, Play } from "lucide-react";
 import { runSimulation } from "@/app/simulations/actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 interface Campaign {
   id: string;
   name: string;
   content: string;
-  social_platform: string;
   user_id: string;
   created_at: string;
 }
@@ -33,6 +33,14 @@ interface DashboardClientProps {
   targetGroups: TargetGroup[];
 }
 
+const socialPlatforms = [
+  { value: "twitter", label: "Twitter / X" },
+  { value: "facebook", label: "Facebook" },
+  { value: "instagram", label: "Instagram" },
+  { value: "linkedin", label: "LinkedIn" },
+  { value: "tiktok", label: "TikTok" },
+] as const;
+
 export function DashboardClient({
   campaigns,
   targetGroups,
@@ -44,6 +52,7 @@ export function DashboardClient({
   const [selectedTargetGroupId, setSelectedTargetGroupId] = useState<
     string | null
   >(null);
+  const [selectedPlatform, setSelectedPlatform] = useState<string>("twitter");
   const [isRunning, setIsRunning] = useState(false);
 
   const handleSelectCampaign = (campaignId: string) => {
@@ -65,7 +74,8 @@ export function DashboardClient({
     try {
       const result = await runSimulation(
         selectedCampaignId,
-        selectedTargetGroupId
+        selectedTargetGroupId,
+        selectedPlatform
       );
 
       if (result.success && result.simulationId) {
@@ -136,6 +146,27 @@ export function DashboardClient({
             selectedTargetGroupId={selectedTargetGroupId}
             onSelectTargetGroup={handleSelectTargetGroup}
           />
+        </div>
+      </div>
+
+      {/* Social Platform Selection */}
+      <div className="mt-8">
+        <h2 className="text-xl font-semibold mb-4">Social Media Platform</h2>
+        <div className="flex flex-wrap gap-3">
+          {socialPlatforms.map((platform) => (
+            <Button
+              key={platform.value}
+              type="button"
+              variant={selectedPlatform === platform.value ? "default" : "outline"}
+              className={cn(
+                "flex-1 min-w-[150px]",
+                selectedPlatform === platform.value && "ring-2 ring-primary"
+              )}
+              onClick={() => setSelectedPlatform(platform.value)}
+            >
+              {platform.label}
+            </Button>
+          ))}
         </div>
       </div>
     </div>
