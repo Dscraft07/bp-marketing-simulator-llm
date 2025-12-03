@@ -1,7 +1,10 @@
 import { generateObject } from "ai";
 import { gateway } from "@ai-sdk/gateway";
 import { z } from "zod";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
+
+// Extend timeout for LLM calls (default is 10s on hobby, can be up to 60s on pro)
+export const maxDuration = 60;
 
 // Schema for persona reactions
 const PersonaReactionSchema = z.object({
@@ -21,8 +24,10 @@ interface RequestBody {
   secretKey: string;
 }
 
-// Secret key to verify requests from Supabase Edge Function
+// Environment variables
 const EDGE_FUNCTION_SECRET = process.env.EDGE_FUNCTION_SECRET;
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export async function POST(request: Request) {
   try {
@@ -38,8 +43,12 @@ export async function POST(request: Request) {
       return Response.json({ error: "simulationId is required" }, { status: 400 });
     }
 
-    // Get simulation data from Supabase
-    const supabase = await createClient();
+    if (!SUPABASE_SERVICE_ROLE_KEY) {
+      return Response.json({ error: "SUPABASE_SERVICE_ROLE_KEY not configured" }, { status: 500 });
+    }
+
+    // Get simulation data from Supabase using service role key
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     
     const { data: simulation, error: simError } = await supabase
       .from("simulations")
@@ -48,7 +57,8 @@ export async function POST(request: Request) {
       .single();
 
     if (simError || !simulation) {
-      return Response.json({ error: "Simulation not found" }, { status: 404 });
+      console.error("Failed to fetch simulation:", simError);
+      return Response.json({ error: "Simulation not found", details: simError?.message }, { status: 404 });
     }
 
     const modelId = simulation.model || "xai/grok-3-mini-fast";

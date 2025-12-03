@@ -110,15 +110,31 @@ Deno.serve(async (req) => {
         }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.details || errorData.error || `HTTP ${response.status}`);
+      // Get raw response text first
+      const responseText = await response.text();
+      console.log(`LLM API response status: ${response.status}, length: ${responseText.length}`);
+
+      if (!responseText) {
+        throw new Error("Empty response from LLM API - possible timeout");
       }
 
-      llmResponse = await response.json();
+      // Try to parse as JSON
+      let parsedResponse;
+      try {
+        parsedResponse = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error("Failed to parse response:", responseText.substring(0, 500));
+        throw new Error(`Invalid JSON response: ${responseText.substring(0, 200)}`);
+      }
+
+      if (!response.ok) {
+        throw new Error(parsedResponse.details || parsedResponse.error || `HTTP ${response.status}`);
+      }
+
+      llmResponse = parsedResponse;
       
       if (!llmResponse.success || !llmResponse.reactions) {
-        throw new Error(llmResponse.error || "Invalid response from LLM API");
+        throw new Error(llmResponse.error || llmResponse.details || "Invalid response from LLM API");
       }
 
       console.log(`Generated ${llmResponse.reactions.length} persona reactions`);
