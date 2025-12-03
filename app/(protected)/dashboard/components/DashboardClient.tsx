@@ -41,6 +41,17 @@ const socialPlatforms = [
   { value: "tiktok", label: "TikTok" },
 ] as const;
 
+const llmModels = [
+  { value: "xai/grok-3-mini-fast", label: "Grok 3 Mini Fast", provider: "xAI" },
+  { value: "xai/grok-3-fast", label: "Grok 3 Fast", provider: "xAI" },
+  { value: "openai/gpt-4o-mini", label: "GPT-4o Mini", provider: "OpenAI" },
+  { value: "openai/gpt-4o", label: "GPT-4o", provider: "OpenAI" },
+  { value: "anthropic/claude-3-5-haiku-latest", label: "Claude 3.5 Haiku", provider: "Anthropic" },
+  { value: "anthropic/claude-sonnet-4-20250514", label: "Claude Sonnet 4", provider: "Anthropic" },
+  { value: "google/gemini-2.0-flash", label: "Gemini 2.0 Flash", provider: "Google" },
+  { value: "google/gemini-2.5-flash-preview-05-20", label: "Gemini 2.5 Flash", provider: "Google" },
+] as const;
+
 export function DashboardClient({
   campaigns,
   targetGroups,
@@ -53,6 +64,7 @@ export function DashboardClient({
     string | null
   >(null);
   const [selectedPlatform, setSelectedPlatform] = useState<string>("twitter");
+  const [selectedModel, setSelectedModel] = useState<string>("xai/grok-3-mini-fast");
   const [isRunning, setIsRunning] = useState(false);
 
   const handleSelectCampaign = (campaignId: string) => {
@@ -75,7 +87,8 @@ export function DashboardClient({
       const result = await runSimulation(
         selectedCampaignId,
         selectedTargetGroupId,
-        selectedPlatform
+        selectedPlatform,
+        selectedModel
       );
 
       if (result.success && result.simulationId) {
@@ -125,6 +138,31 @@ export function DashboardClient({
               onClick={() => setSelectedPlatform(platform.value)}
             >
               {platform.label}
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      {/* LLM Model Selection */}
+      <div className="mb-8">
+        <h2 className="text-xl font-semibold mb-3">AI Model</h2>
+        <p className="text-sm text-muted-foreground mb-4">
+          Choose the language model to generate persona reactions
+        </p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {llmModels.map((model) => (
+            <Button
+              key={model.value}
+              type="button"
+              variant={selectedModel === model.value ? "default" : "outline"}
+              className={cn(
+                "flex flex-col h-auto py-3 px-4",
+                selectedModel === model.value && "ring-2 ring-primary"
+              )}
+              onClick={() => setSelectedModel(model.value)}
+            >
+              <span className="font-medium">{model.label}</span>
+              <span className="text-xs opacity-70">{model.provider}</span>
             </Button>
           ))}
         </div>

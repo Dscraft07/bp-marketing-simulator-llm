@@ -12,7 +12,8 @@ interface RunSimulationResult {
 export async function runSimulation(
   campaignId: string,
   targetGroupId: string,
-  socialPlatform: string
+  socialPlatform: string,
+  llmModel: string
 ): Promise<RunSimulationResult> {
   const supabase = await createClient();
 
@@ -82,6 +83,7 @@ export async function runSimulation(
         status: "pending",
         campaign_snapshot: campaignSnapshot,
         target_group_snapshot: targetGroupSnapshot,
+        model: llmModel,
       })
       .select()
       .single();

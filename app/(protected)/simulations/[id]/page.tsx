@@ -111,6 +111,25 @@ function getSocialPlatformLabel(platform?: string): string {
   return platform ? labels[platform] || platform : "Unknown";
 }
 
+function getModelDisplayName(modelId?: string | null): string {
+  if (!modelId) return "Unknown";
+  
+  const modelNames: Record<string, string> = {
+    "xai/grok-3-mini-fast": "Grok 3 Mini Fast",
+    "xai/grok-3-fast": "Grok 3 Fast",
+    "openai/gpt-4o-mini": "GPT-4o Mini",
+    "openai/gpt-4o": "GPT-4o",
+    "anthropic/claude-3-5-haiku-latest": "Claude 3.5 Haiku",
+    "anthropic/claude-sonnet-4-20250514": "Claude Sonnet 4",
+    "google/gemini-2.0-flash": "Gemini 2.0 Flash",
+    "google/gemini-2.5-flash-preview-05-20": "Gemini 2.5 Flash",
+    // Legacy models (for backwards compatibility)
+    "grok-4-fast-reasoning": "Grok 4 Fast Reasoning (Legacy)",
+  };
+
+  return modelNames[modelId] || modelId;
+}
+
 export default async function SimulationPage({ params }: SimulationPageProps) {
   const { id } = await params;
   const [simulation, initialResults] = await Promise.all([
@@ -190,7 +209,7 @@ export default async function SimulationPage({ params }: SimulationPageProps) {
           {simulation.model && (
             <div className="flex items-center gap-1.5">
               <span className="text-muted-foreground">Model:</span>
-              <span className="font-medium">{simulation.model}</span>
+              <span className="font-medium">{getModelDisplayName(simulation.model)}</span>
             </div>
           )}
         </div>
