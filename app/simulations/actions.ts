@@ -1,14 +1,38 @@
+/**
+ * Server Actions pro simulace
+ * 
+ * Tento modul obsahuje server-side funkce pro správu simulací.
+ * Server Actions jsou volány z klientských komponent a běží na serveru,
+ * což umožňuje bezpečný přístup k databázi a autentizaci.
+ */
+
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
+/** Výsledek operace spuštění simulace */
 interface RunSimulationResult {
   success: boolean;
   simulationId?: string;
   error?: string;
 }
 
+/**
+ * Spustí novou simulaci marketingové kampaně.
+ * 
+ * Proces:
+ * 1. Ověří přihlášení uživatele
+ * 2. Načte data kampaně a cílové skupiny
+ * 3. Vytvoří snapshoty (kopie dat v době simulace)
+ * 4. Vytvoří záznam simulace v DB se statusem "pending"
+ * 5. Asynchronně zavolá Edge Function pro zpracování
+ * 
+ * @param campaignId - ID kampaně k simulaci
+ * @param targetGroupId - ID cílové skupiny
+ * @param socialPlatform - Platforma (twitter, facebook, instagram, linkedin, tiktok)
+ * @param llmModel - ID modelu ve formátu "provider/model" (např. "openai/gpt-4o")
+ */
 export async function runSimulation(
   campaignId: string,
   targetGroupId: string,

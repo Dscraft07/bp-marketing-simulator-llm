@@ -1,44 +1,93 @@
-// Setup type definitions for built-in Supabase Runtime APIs
+/**
+ * Supabase Edge Function: run-llm-simulation
+ * 
+ * Tato funkce je jádrem simulačního systému. Volá se asynchronně po vytvoření
+ * nové simulace a má na starosti:
+ * 1. Načtení dat simulace z databáze
+ * 2. Sestavení promptů pro LLM
+ * 3. Volání příslušného LLM API (OpenAI, Anthropic, Google, xAI)
+ * 4. Parsování a validaci odpovědi
+ * 5. Uložení výsledků zpět do databáze
+ * 
+ * Podporované modely jsou definovány v MODEL_CONFIGS a zahrnují poskytovatele
+ * OpenAI, Anthropic, Google Gemini a xAI (Grok).
+ */
+
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 console.log("run-llm-simulation Edge Function initialized");
 
+// ============================================================================
+// TYPY A ROZHRANÍ
+// ============================================================================
+
+/** Vstupní data pro Edge Function */
 interface SimulationRequest {
   simulationId: string;
 }
 
+/** Struktura jedné reakce persony vrácené z LLM */
 interface PersonaReaction {
-  persona_name: string;
-  content: string;
-  sentiment: "positive" | "negative" | "neutral";
-  relevance_score: number;
-  toxicity_score: number;
+  persona_name: string;      // Název/popis persony (např. "Tech-Savvy Millennial")
+  content: string;           // Text reakce v první osobě
+  sentiment: "positive" | "negative" | "neutral";  // Sentiment reakce
+  relevance_score: number;   // Relevance kampaně pro personu (0-1)
+  toxicity_score: number;    // Míra toxicity reakce (0-1, typicky nízká)
 }
 
+/** Očekávaný formát odpovědi z LLM */
 interface LLMResponse {
   reactions: PersonaReaction[];
 }
 
-// Provider configurations
+// ============================================================================
+// KONFIGURACE MODELŮ
+// ============================================================================
+
+/** Podporovaní poskytovatelé LLM */
 type Provider = "openai" | "anthropic" | "google" | "xai";
 
+/** Konfigurace pro mapování model ID na poskytovatele a API model */
 interface ModelConfig {
   provider: Provider;
-  apiModel: string;
+  apiModel: string;  // Název modelu pro API volání
 }
 
+/**
+ * Mapování model ID (ve formátu "provider/model") na konfiguraci.
+ * Tyto ID se ukládají do databáze a zobrazují v UI.
+ */
 const MODEL_CONFIGS: Record<string, ModelConfig> = {
+  // xAI (Grok)
   "xai/grok-3-mini-fast": { provider: "xai", apiModel: "grok-3-mini-fast" },
   "xai/grok-3-fast": { provider: "xai", apiModel: "grok-3-fast" },
+  // OpenAI
   "openai/gpt-4o-mini": { provider: "openai", apiModel: "gpt-4o-mini" },
   "openai/gpt-4o": { provider: "openai", apiModel: "gpt-4o" },
+  // Anthropic (Claude)
   "anthropic/claude-3-5-haiku-latest": { provider: "anthropic", apiModel: "claude-3-5-haiku-latest" },
   "anthropic/claude-sonnet-4-20250514": { provider: "anthropic", apiModel: "claude-sonnet-4-20250514" },
+  // Google (Gemini)
   "google/gemini-2.0-flash": { provider: "google", apiModel: "gemini-2.0-flash" },
   "google/gemini-2.5-flash-preview-05-20": { provider: "google", apiModel: "gemini-2.5-flash-preview-05-20" },
 };
 
+// ============================================================================
+// GENEROVÁNÍ PROMPTŮ
+// ============================================================================
+
+/**
+ * Sestaví systémový a uživatelský prompt pro LLM.
+ * 
+ * Systémový prompt definuje:
+ * - Roli modelu (marketingový analytik)
+ * - Požadovaný formát výstupu (JSON)
+ * - Pravidla pro generování reakcí (první osoba, styl platformy)
+ * - Hodnotící kritéria (sentiment, relevance, toxicita)
+ * 
+ * Uživatelský prompt obsahuje konkrétní data kampaně a cílové skupiny.
+ */
 function buildPrompts(
   campaignName: string,
   campaignContent: string,
@@ -47,6 +96,7 @@ function buildPrompts(
   targetGroupDescription: string,
   personaCount: number
 ): { systemPrompt: string; userPrompt: string } {
+  // Mapování interních hodnot platform na zobrazované názvy
   const platformDisplayNames: Record<string, string> = {
     twitter: "Twitter/X",
     facebook: "Facebook",
@@ -57,6 +107,7 @@ function buildPrompts(
 
   const platformName = platformDisplayNames[socialPlatform] || socialPlatform;
 
+  // Systémový prompt - definuje chování a formát výstupu
   const systemPrompt = `You are an expert marketing analyst specializing in consumer behavior and persona simulation. Your task is to generate realistic reactions from diverse personas to marketing campaigns on ${platformName}.
 
 CRITICAL INSTRUCTIONS:
@@ -95,6 +146,7 @@ Requirements:
 - Natural, conversational tone
 - Response must be parseable JSON with no markdown`;
 
+  // Uživatelský prompt - konkrétní data pro simulaci
   const userPrompt = `Generate ${personaCount} persona reactions for this marketing campaign on ${platformName}:
 
 CAMPAIGN NAME: ${campaignName}
@@ -110,7 +162,14 @@ Generate exactly ${personaCount} unique personas with first-person reactions. Re
   return { systemPrompt, userPrompt };
 }
 
-// OpenAI-compatible API (OpenAI, xAI)
+// ============================================================================
+// API VOLÁNÍ - OPENAI KOMPATIBILNÍ (OpenAI, xAI)
+// ============================================================================
+
+/**
+ * Volá OpenAI-kompatibilní API (funguje pro OpenAI i xAI/Grok).
+ * Používá JSON mode pro strukturovaný výstup.
+ */
 async function callOpenAICompatible(
   baseUrl: string,
   apiKey: string,
@@ -132,8 +191,8 @@ async function callOpenAICompatible(
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
       ],
-      response_format: { type: "json_object" },
-      temperature: 0.7,
+      response_format: { type: "json_object" },  // Vynutí JSON výstup
+      temperature: 0.7,  // Mírná kreativita pro rozmanitost reakcí
     }),
   });
 
@@ -149,7 +208,14 @@ async function callOpenAICompatible(
   return JSON.parse(content);
 }
 
-// Anthropic API
+// ============================================================================
+// API VOLÁNÍ - ANTHROPIC (Claude)
+// ============================================================================
+
+/**
+ * Volá Anthropic Messages API pro modely Claude.
+ * Anthropic má jiný formát než OpenAI - používá system jako samostatný parametr.
+ */
 async function callAnthropic(
   apiKey: string,
   model: string,
@@ -168,7 +234,7 @@ async function callAnthropic(
     body: JSON.stringify({
       model,
       max_tokens: 4096,
-      system: systemPrompt,
+      system: systemPrompt,  // System prompt je samostatný parametr
       messages: [{ role: "user", content: userPrompt }],
     }),
   });
@@ -182,11 +248,19 @@ async function callAnthropic(
   const content = data.content?.[0]?.text;
   if (!content) throw new Error("No content in Anthropic response");
 
+  // Claude někdy obaluje JSON do markdown code blocks - odstraníme je
   const cleaned = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
   return JSON.parse(cleaned);
 }
 
-// Google Gemini API
+// ============================================================================
+// API VOLÁNÍ - GOOGLE (Gemini)
+// ============================================================================
+
+/**
+ * Volá Google Generative AI API pro modely Gemini.
+ * Používá responseMimeType pro vynucení JSON výstupu.
+ */
 async function callGoogle(
   apiKey: string,
   model: string,
@@ -204,7 +278,7 @@ async function callGoogle(
         contents: [{ parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] }],
         generationConfig: {
           temperature: 0.7,
-          responseMimeType: "application/json",
+          responseMimeType: "application/json",  // Vynutí JSON výstup
         },
       }),
     }
@@ -222,6 +296,15 @@ async function callGoogle(
   return JSON.parse(content);
 }
 
+// ============================================================================
+// ROUTER PRO LLM VOLÁNÍ
+// ============================================================================
+
+/**
+ * Hlavní router pro volání LLM API.
+ * Na základě model ID vybere správného poskytovatele a zavolá příslušnou funkci.
+ * API klíče se načítají z environment variables (Supabase Secrets).
+ */
 async function callLLM(
   modelId: string,
   systemPrompt: string,
@@ -254,8 +337,17 @@ async function callLLM(
   }
 }
 
+// ============================================================================
+// HLAVNÍ HANDLER
+// ============================================================================
+
+/**
+ * Entry point Edge Function.
+ * Zpracovává HTTP POST požadavky s ID simulace.
+ */
 Deno.serve(async (req) => {
   try {
+    // Parsování vstupních dat
     const { simulationId }: SimulationRequest = await req.json();
 
     if (!simulationId) {
@@ -267,10 +359,12 @@ Deno.serve(async (req) => {
 
     console.log(`Processing simulation: ${simulationId}`);
 
+    // Inicializace Supabase klienta s service role key (plná práva)
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // Načtení dat simulace včetně snapshotů kampaně a cílové skupiny
     const { data: simulation, error: simError } = await supabase
       .from("simulations")
       .select("*")
@@ -285,12 +379,14 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Výchozí model pokud není specifikován
     const modelId = simulation.model || "xai/grok-3-mini-fast";
     console.log(`Model: ${modelId}`);
 
-    // Update status to running
+    // Aktualizace statusu na "running"
     await supabase.from("simulations").update({ status: "running" }).eq("id", simulationId);
 
+    // Sestavení promptů z dat simulace
     const { systemPrompt, userPrompt } = buildPrompts(
       simulation.campaign_snapshot.name,
       simulation.campaign_snapshot.content,
@@ -300,11 +396,13 @@ Deno.serve(async (req) => {
       simulation.target_group_snapshot.persona_count
     );
 
+    // Volání LLM a zpracování odpovědi
     let llmResponse: LLMResponse;
     try {
       llmResponse = await callLLM(modelId, systemPrompt, userPrompt);
       console.log(`Generated ${llmResponse.reactions.length} reactions`);
     } catch (apiError) {
+      // Při chybě LLM - uložit error a ukončit
       console.error("LLM call failed:", apiError);
       await supabase.from("simulations").update({
         status: "failed",
@@ -318,7 +416,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Save results
+    // Uložení výsledků do tabulky simulation_results
     const resultsToInsert = llmResponse.reactions.map((r) => ({
       simulation_id: simulationId,
       persona_name: r.persona_name,
@@ -344,6 +442,7 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Úspěšné dokončení - aktualizace statusu
     await supabase.from("simulations").update({
       status: "completed",
       finished_at: new Date().toISOString(),

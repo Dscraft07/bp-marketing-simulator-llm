@@ -1,3 +1,16 @@
+/**
+ * DashboardClient - Hlavní klientská komponenta dashboardu
+ * 
+ * Tato komponenta je "control center" aplikace, kde uživatel:
+ * 1. Vybírá kampaň k simulaci
+ * 2. Vybírá cílovou skupinu
+ * 3. Vybírá sociální platformu (ovlivňuje styl generovaných reakcí)
+ * 4. Vybírá LLM model pro generování
+ * 5. Spouští simulaci
+ * 
+ * Je označena jako "use client" protože obsahuje interaktivní state a event handlery.
+ */
+
 "use client";
 
 import { useState } from "react";
@@ -10,6 +23,10 @@ import { runSimulation } from "@/app/simulations/actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+
+// ============================================================================
+// TYPY
+// ============================================================================
 
 interface Campaign {
   id: string;
@@ -33,6 +50,19 @@ interface DashboardClientProps {
   targetGroups: TargetGroup[];
 }
 
+// ============================================================================
+// KONSTANTY
+// ============================================================================
+
+/**
+ * Podporované sociální platformy.
+ * Výběr platformy ovlivňuje styl generovaných reakcí v LLM promptu:
+ * - Twitter: krátké, hashtags
+ * - Facebook: delší, konverzační
+ * - Instagram: emoji, trendy jazyk
+ * - LinkedIn: profesionální tón
+ * - TikTok: Gen-Z styl, slang
+ */
 const socialPlatforms = [
   { value: "twitter", label: "Twitter / X" },
   { value: "facebook", label: "Facebook" },
@@ -41,6 +71,11 @@ const socialPlatforms = [
   { value: "tiktok", label: "TikTok" },
 ] as const;
 
+/**
+ * Dostupné LLM modely pro generování reakcí.
+ * Hodnota "value" odpovídá formátu "provider/model" používanému v Edge Function.
+ * Každý poskytovatel vyžaduje vlastní API klíč v Supabase Secrets.
+ */
 const llmModels = [
   { value: "xai/grok-3-mini-fast", label: "Grok 3 Mini Fast", provider: "xAI" },
   { value: "xai/grok-3-fast", label: "Grok 3 Fast", provider: "xAI" },

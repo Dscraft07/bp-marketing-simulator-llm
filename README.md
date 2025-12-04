@@ -1,105 +1,263 @@
-<a href="https://demo-nextjs-with-supabase.vercel.app/">
-  <img alt="Next.js and Supabase Starter Kit - the fastest way to build apps with Next.js and Supabase" src="https://demo-nextjs-with-supabase.vercel.app/opengraph-image.png">
-  <h1 align="center">Next.js and Supabase Starter Kit</h1>
-</a>
+# Prediktivní simulátor reakcí na marketingové kampaně
 
-<p align="center">
- The fastest way to build apps with Next.js and Supabase
-</p>
+Webová aplikace pro simulaci reakcí cílových skupin na marketingové kampaně s využitím velkých jazykových modelů (LLM).
 
-<p align="center">
-  <a href="#features"><strong>Features</strong></a> ·
-  <a href="#demo"><strong>Demo</strong></a> ·
-  <a href="#deploy-to-vercel"><strong>Deploy to Vercel</strong></a> ·
-  <a href="#clone-and-run-locally"><strong>Clone and run locally</strong></a> ·
-  <a href="#feedback-and-issues"><strong>Feedback and issues</strong></a>
-  <a href="#more-supabase-examples"><strong>More Examples</strong></a>
-</p>
-<br/>
+## 🎯 O projektu
 
-## Features
+Aplikace umožňuje marketingovým specialistům testovat své kampaně ještě před jejich spuštěním. Pomocí LLM generuje realistické reakce fiktivních person z definované cílové skupiny na zadaný marketingový obsah.
 
-- Works across the entire [Next.js](https://nextjs.org) stack
-  - App Router
-  - Pages Router
-  - Middleware
-  - Client
-  - Server
-  - It just works!
-- supabase-ssr. A package to configure Supabase Auth to use cookies
-- Password-based authentication block installed via the [Supabase UI Library](https://supabase.com/ui/docs/nextjs/password-based-auth)
-- Styling with [Tailwind CSS](https://tailwindcss.com)
-- Components with [shadcn/ui](https://ui.shadcn.com/)
-- Optional deployment with [Supabase Vercel Integration and Vercel deploy](#deploy-your-own)
-  - Environment variables automatically assigned to Vercel project
+### Hlavní funkce
 
-## Demo
+- **Správa kampaní** - vytváření a správa marketingových kampaní
+- **Definice cílových skupin** - tvorba detailních popisů cílových skupin s počtem person
+- **Výběr sociální platformy** - simulace reakcí specifických pro Twitter/X, Facebook, Instagram, LinkedIn nebo TikTok
+- **Výběr LLM modelu** - podpora více poskytovatelů (OpenAI, Anthropic, Google, xAI)
+- **Simulace reakcí** - generování realistických first-person komentářů od virtuálních person
+- **Analýza výsledků** - sentiment, relevance a toxicita každé reakce
 
-You can view a fully working demo at [demo-nextjs-with-supabase.vercel.app](https://demo-nextjs-with-supabase.vercel.app/).
+## 🛠 Technologie
 
-## Deploy to Vercel
+- **Frontend**: Next.js 15 (App Router), React 19, TypeScript
+- **Styling**: Tailwind CSS, shadcn/ui komponenty
+- **Backend**: Supabase (PostgreSQL, Auth, Edge Functions)
+- **LLM integrace**: Přímé API volání (OpenAI, Anthropic, Google Gemini, xAI Grok)
+- **Deployment**: Vercel (frontend), Supabase (backend)
 
-Vercel deployment will guide you through creating a Supabase account and project.
+## 📁 Struktura projektu
 
-After installation of the Supabase integration, all relevant environment variables will be assigned to the project so the deployment is fully functioning.
+```
+bp-marketing-simulator-llm/
+├── app/                          # Next.js App Router
+│   ├── (protected)/              # Chráněné routes (vyžadují přihlášení)
+│   │   ├── dashboard/            # Hlavní dashboard
+│   │   │   ├── components/       # Komponenty dashboardu
+│   │   │   │   ├── CampaignsTable.tsx    # Tabulka kampaní
+│   │   │   │   ├── DashboardClient.tsx   # Hlavní klientská komponenta
+│   │   │   │   └── TargetGroupsTable.tsx # Tabulka cílových skupin
+│   │   │   └── page.tsx          # Stránka dashboardu
+│   │   ├── campaigns/new/        # Vytvoření nové kampaně
+│   │   ├── target-groups/new/    # Vytvoření nové cílové skupiny
+│   │   ├── simulations/          # Přehled simulací
+│   │   │   ├── [id]/             # Detail simulace
+│   │   │   │   ├── components/   # Komponenty detailu
+│   │   │   │   │   ├── SimulationResults.tsx  # Výsledky simulace
+│   │   │   │   │   ├── AnalysisSummary.tsx    # Souhrn analýzy
+│   │   │   │   │   └── DiscussionThread.tsx   # Vlákno diskuze
+│   │   │   │   └── page.tsx      # Stránka detailu
+│   │   │   └── page.tsx          # Seznam simulací
+│   │   ├── profile/              # Uživatelský profil
+│   │   └── layout.tsx            # Layout pro chráněné stránky
+│   ├── auth/                     # Autentizace
+│   │   ├── login/                # Přihlášení
+│   │   ├── sign-up/              # Registrace
+│   │   ├── forgot-password/      # Zapomenuté heslo
+│   │   ├── callback/             # OAuth callback
+│   │   └── ...
+│   ├── campaigns/
+│   │   ├── actions.ts            # Server actions pro kampaně
+│   │   └── components/
+│   │       └── CampaignForm.tsx  # Formulář kampaně
+│   ├── target-groups/
+│   │   ├── actions.ts            # Server actions pro cílové skupiny
+│   │   └── components/
+│   │       └── TargetGroupForm.tsx # Formulář cílové skupiny
+│   ├── simulations/
+│   │   └── actions.ts            # Server actions pro simulace
+│   ├── profile/
+│   │   └── actions.ts            # Server actions pro profil
+│   ├── layout.tsx                # Root layout
+│   ├── page.tsx                  # Landing page
+│   └── globals.css               # Globální styly
+├── components/                   # Sdílené komponenty
+│   ├── ui/                       # shadcn/ui komponenty
+│   │   ├── button.tsx
+│   │   ├── card.tsx
+│   │   ├── form.tsx
+│   │   ├── input.tsx
+│   │   ├── table.tsx
+│   │   └── ...
+│   ├── auth/                     # Autentizační komponenty
+│   ├── Navbar.tsx                # Navigační lišta
+│   └── ...
+├── lib/                          # Utility a konfigurace
+│   ├── supabase/                 # Supabase klienti
+│   │   ├── client.ts             # Browser client
+│   │   ├── server.ts             # Server client
+│   │   └── middleware.ts         # Auth middleware
+│   ├── utils.ts                  # Pomocné funkce
+│   └── validation/               # Zod schémata
+│       ├── campaignSchema.ts
+│       ├── targetGroupSchema.ts
+│       └── profileSchema.ts
+├── supabase/                     # Supabase konfigurace
+│   ├── functions/                # Edge Functions
+│   │   └── run-llm-simulation/   # Hlavní simulační funkce
+│   │       ├── index.ts          # Entry point
+│   │       └── deno.json         # Deno konfigurace
+│   ├── migrations/               # Databázové migrace
+│   └── config.toml               # Supabase konfigurace
+├── middleware.ts                 # Next.js middleware (auth)
+├── package.json
+├── tailwind.config.ts
+└── tsconfig.json
+```
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&project-name=nextjs-with-supabase&repository-name=nextjs-with-supabase&demo-title=nextjs-with-supabase&demo-description=This+starter+configures+Supabase+Auth+to+use+cookies%2C+making+the+user%27s+session+available+throughout+the+entire+Next.js+app+-+Client+Components%2C+Server+Components%2C+Route+Handlers%2C+Server+Actions+and+Middleware.&demo-url=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2F&external-id=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&demo-image=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2Fopengraph-image.png)
+## 🗄 Databázové schéma
 
-The above will also clone the Starter kit to your GitHub, you can clone that locally and develop locally.
+### Tabulky
 
-If you wish to just develop locally and not deploy to Vercel, [follow the steps below](#clone-and-run-locally).
+#### `profiles`
+Uživatelské profily (rozšíření Supabase Auth).
+- `id` (uuid, PK) - ID uživatele
+- `email` (text) - E-mail
+- `full_name` (text) - Jméno
+- `created_at` (timestamp)
+- `updated_at` (timestamp)
 
-## Clone and run locally
+#### `campaigns`
+Marketingové kampaně.
+- `id` (uuid, PK)
+- `user_id` (uuid, FK → profiles) - Vlastník
+- `name` (text) - Název kampaně
+- `content` (text) - Obsah/text kampaně
+- `created_at` (timestamp)
 
-1. You'll first need a Supabase project which can be made [via the Supabase dashboard](https://database.new)
+#### `target_groups`
+Cílové skupiny pro simulace.
+- `id` (uuid, PK)
+- `user_id` (uuid, FK → profiles) - Vlastník
+- `name` (text) - Název skupiny
+- `description` (text) - Detailní popis cílové skupiny
+- `persona_count` (int) - Počet person k vygenerování
+- `created_at` (timestamp)
 
-2. Create a Next.js app using the Supabase Starter template npx command
+#### `simulations`
+Záznamy o simulacích.
+- `id` (uuid, PK)
+- `user_id` (uuid, FK → profiles)
+- `campaign_id` (uuid, FK → campaigns, nullable)
+- `target_group_id` (uuid, FK → target_groups, nullable)
+- `status` (enum: pending, running, completed, failed)
+- `model` (text) - Použitý LLM model
+- `campaign_snapshot` (jsonb) - Snapshot kampaně v době simulace
+- `target_group_snapshot` (jsonb) - Snapshot cílové skupiny
+- `error_message` (text, nullable)
+- `created_at` (timestamp)
+- `finished_at` (timestamp, nullable)
 
-   ```bash
-   npx create-next-app --example with-supabase with-supabase-app
-   ```
+#### `simulation_results`
+Výsledky simulace - jednotlivé reakce person.
+- `id` (uuid, PK)
+- `simulation_id` (uuid, FK → simulations)
+- `persona_name` (text) - Název persony
+- `content` (text) - Text reakce
+- `sentiment` (enum: positive, negative, neutral)
+- `relevance_score` (float) - Relevance 0-1
+- `toxicity_score` (float) - Toxicita 0-1
+- `created_at` (timestamp)
 
-   ```bash
-   yarn create next-app --example with-supabase with-supabase-app
-   ```
+## 🔄 Architektura simulace
 
-   ```bash
-   pnpm create next-app --example with-supabase with-supabase-app
-   ```
+```
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│   Dashboard     │────▶│  Server Action   │────▶│    Supabase     │
+│   (Next.js)     │     │  runSimulation() │     │   (Database)    │
+└─────────────────┘     └──────────────────┘     └────────┬────────┘
+                                                          │
+                                                          ▼
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│   LLM API       │◀────│  Edge Function   │◀────│   Supabase      │
+│ (OpenAI/etc.)   │     │ run-llm-simulation│    │  Functions      │
+└─────────────────┘     └──────────────────┘     └─────────────────┘
+```
 
-3. Use `cd` to change into the app's directory
+1. Uživatel vybere kampaň, cílovou skupinu, platformu a model
+2. Server action vytvoří záznam simulace v DB se statusem "pending"
+3. Zavolá se Supabase Edge Function
+4. Edge Function:
+   - Načte data simulace z DB
+   - Aktualizuje status na "running"
+   - Sestaví prompt pro LLM
+   - Zavolá příslušné LLM API
+   - Uloží výsledky do DB
+   - Aktualizuje status na "completed"
 
-   ```bash
-   cd with-supabase-app
-   ```
+## 🚀 Spuštění projektu
 
-4. Rename `.env.example` to `.env.local` and update the following:
+### Požadavky
+- Node.js 18+
+- npm nebo yarn
+- Supabase účet
+- API klíče pro LLM poskytovatele
 
-   ```
-   NEXT_PUBLIC_SUPABASE_URL=[INSERT SUPABASE PROJECT URL]
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=[INSERT SUPABASE PROJECT API ANON KEY]
-   ```
+### Instalace
 
-   Both `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` can be found in [your Supabase project's API settings](https://supabase.com/dashboard/project/_?showConnect=true)
+```bash
+# Klonování repozitáře
+git clone https://github.com/your-repo/bp-marketing-simulator-llm.git
+cd bp-marketing-simulator-llm
 
-5. You can now run the Next.js local development server:
+# Instalace závislostí
+npm install
 
-   ```bash
-   npm run dev
-   ```
+# Konfigurace environment variables
+cp .env.example .env.local
+# Vyplňte hodnoty v .env.local
+```
 
-   The starter kit should now be running on [localhost:3000](http://localhost:3000/).
+### Environment Variables
 
-6. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY=xxx
 
-> Check out [the docs for Local Development](https://supabase.com/docs/guides/getting-started/local-development) to also run Supabase locally.
+# Pro Edge Function (nastavit přes supabase secrets set)
+# X_API_KEY=xxx          # xAI/Grok
+# OPENAI_API_KEY=xxx     # OpenAI
+# ANTHROPIC_API_KEY=xxx  # Anthropic
+# GOOGLE_API_KEY=xxx     # Google Gemini
+```
 
-## Feedback and issues
+### Spuštění
 
-Please file feedback and issues over on the [Supabase GitHub org](https://github.com/supabase/supabase/issues/new/choose).
+```bash
+# Development server
+npm run dev
 
-## More Supabase examples
+# Build pro produkci
+npm run build
+npm start
+```
 
-- [Next.js Subscription Payments Starter](https://github.com/vercel/nextjs-subscription-payments)
-- [Cookie-based Auth and the Next.js 13 App Router (free course)](https://youtube.com/playlist?list=PL5S4mPUpp4OtMhpnp93EFSo42iQ40XjbF)
-- [Supabase Auth and the Next.js App Router](https://github.com/supabase/supabase/tree/master/examples/auth/nextjs)
+### Deployment Edge Function
+
+```bash
+# Nastavení API klíčů
+supabase secrets set X_API_KEY=xxx
+supabase secrets set OPENAI_API_KEY=xxx
+
+# Deploy
+supabase functions deploy run-llm-simulation
+```
+
+## 📊 Podporované LLM modely
+
+| Provider | Model | ID |
+|----------|-------|-----|
+| xAI | Grok 3 Mini Fast | `xai/grok-3-mini-fast` |
+| xAI | Grok 3 Fast | `xai/grok-3-fast` |
+| OpenAI | GPT-4o Mini | `openai/gpt-4o-mini` |
+| OpenAI | GPT-4o | `openai/gpt-4o` |
+| Anthropic | Claude 3.5 Haiku | `anthropic/claude-3-5-haiku-latest` |
+| Anthropic | Claude Sonnet 4 | `anthropic/claude-sonnet-4-20250514` |
+| Google | Gemini 2.0 Flash | `google/gemini-2.0-flash` |
+| Google | Gemini 2.5 Flash | `google/gemini-2.5-flash-preview-05-20` |
+
+## 👤 Autor
+
+David Sambazov - Bakalářská práce, 2025
+
+## 📄 Licence
+
+Tento projekt je součástí bakalářské práce.
