@@ -119,12 +119,6 @@ function getModelDisplayName(modelId?: string | null): string {
     "xai/grok-3-fast": "Grok 3 Fast",
     "openai/gpt-4o-mini": "GPT-4o Mini",
     "openai/gpt-4o": "GPT-4o",
-    "anthropic/claude-3-5-haiku-latest": "Claude 3.5 Haiku",
-    "anthropic/claude-sonnet-4-20250514": "Claude Sonnet 4",
-    "google/gemini-2.0-flash": "Gemini 2.0 Flash",
-    "google/gemini-2.5-flash-preview-05-20": "Gemini 2.5 Flash",
-    // Legacy models (for backwards compatibility)
-    "grok-4-fast-reasoning": "Grok 4 Fast Reasoning (Legacy)",
   };
 
   return modelNames[modelId] || modelId;
@@ -159,6 +153,21 @@ export default async function SimulationPage({ params }: SimulationPageProps) {
       })
     : null;
 
+  const durationSeconds = simulation.finished_at
+    ? Math.floor(
+        (new Date(simulation.finished_at).getTime() -
+          new Date(simulation.created_at).getTime()) /
+          1000
+      )
+    : null;
+
+  const formatDuration = (seconds: number): string => {
+    if (seconds < 60) return `${seconds}s`;
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return secs > 0 ? `${mins}m ${secs}s` : `${mins}m`;
+  };
+
   return (
     <div className="container mx-auto py-6 max-w-5xl">
       {/* Hero Section */}
@@ -174,6 +183,7 @@ export default async function SimulationPage({ params }: SimulationPageProps) {
             <p className="text-sm text-muted-foreground">
               {createdDate}
               {finishedDate && ` • Finished ${finishedDate}`}
+              {durationSeconds !== null && ` • Duration: ${formatDuration(durationSeconds)}`}
             </p>
           </div>
         </div>
@@ -228,6 +238,9 @@ export default async function SimulationPage({ params }: SimulationPageProps) {
         simulationId={simulation.id}
         initialResults={initialResults}
         simulationStatus={simulation.status}
+        createdAt={simulation.created_at}
+        model={simulation.model}
+        personaCount={simulation.target_group_snapshot.persona_count}
       />
     </div>
   );

@@ -81,10 +81,6 @@ const llmModels = [
   { value: "xai/grok-3-fast", label: "Grok 3 Fast", provider: "xAI" },
   { value: "openai/gpt-4o-mini", label: "GPT-4o Mini", provider: "OpenAI" },
   { value: "openai/gpt-4o", label: "GPT-4o", provider: "OpenAI" },
-  { value: "anthropic/claude-3-5-haiku-latest", label: "Claude 3.5 Haiku", provider: "Anthropic" },
-  { value: "anthropic/claude-sonnet-4-20250514", label: "Claude Sonnet 4", provider: "Anthropic" },
-  { value: "google/gemini-2.0-flash", label: "Gemini 2.0 Flash", provider: "Google" },
-  { value: "google/gemini-2.5-flash-preview-05-20", label: "Gemini 2.5 Flash", provider: "Google" },
 ] as const;
 
 export function DashboardClient({

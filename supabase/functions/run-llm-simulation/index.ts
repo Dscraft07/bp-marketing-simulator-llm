@@ -5,12 +5,12 @@
  * nové simulace a má na starosti:
  * 1. Načtení dat simulace z databáze
  * 2. Sestavení promptů pro LLM
- * 3. Volání příslušného LLM API (OpenAI, Anthropic, Google, xAI)
+ * 3. Volání příslušného LLM API (OpenAI, xAI)
  * 4. Parsování a validaci odpovědi
  * 5. Uložení výsledků zpět do databáze
  * 
  * Podporované modely jsou definovány v MODEL_CONFIGS a zahrnují poskytovatele
- * OpenAI, Anthropic, Google Gemini a xAI (Grok).
+ * OpenAI a xAI (Grok).
  */
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
@@ -46,7 +46,7 @@ interface LLMResponse {
 // ============================================================================
 
 /** Podporovaní poskytovatelé LLM */
-type Provider = "openai" | "anthropic" | "google" | "xai";
+type Provider = "openai" | "xai";
 
 /** Konfigurace pro mapování model ID na poskytovatele a API model */
 interface ModelConfig {
@@ -65,12 +65,6 @@ const MODEL_CONFIGS: Record<string, ModelConfig> = {
   // OpenAI
   "openai/gpt-4o-mini": { provider: "openai", apiModel: "gpt-4o-mini" },
   "openai/gpt-4o": { provider: "openai", apiModel: "gpt-4o" },
-  // Anthropic (Claude)
-  "anthropic/claude-3-5-haiku-latest": { provider: "anthropic", apiModel: "claude-3-5-haiku-latest" },
-  "anthropic/claude-sonnet-4-20250514": { provider: "anthropic", apiModel: "claude-sonnet-4-20250514" },
-  // Google (Gemini)
-  "google/gemini-2.0-flash": { provider: "google", apiModel: "gemini-2.0-flash" },
-  "google/gemini-2.5-flash-preview-05-20": { provider: "google", apiModel: "gemini-2.5-flash-preview-05-20" },
 };
 
 // ============================================================================
@@ -209,94 +203,6 @@ async function callOpenAICompatible(
 }
 
 // ============================================================================
-// API VOLÁNÍ - ANTHROPIC (Claude)
-// ============================================================================
-
-/**
- * Volá Anthropic Messages API pro modely Claude.
- * Anthropic má jiný formát než OpenAI - používá system jako samostatný parametr.
- */
-async function callAnthropic(
-  apiKey: string,
-  model: string,
-  systemPrompt: string,
-  userPrompt: string
-): Promise<LLMResponse> {
-  console.log(`Calling Anthropic with model: ${model}`);
-
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: 4096,
-      system: systemPrompt,  // System prompt je samostatný parametr
-      messages: [{ role: "user", content: userPrompt }],
-    }),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Anthropic error ${response.status}: ${errorText}`);
-  }
-
-  const data = await response.json();
-  const content = data.content?.[0]?.text;
-  if (!content) throw new Error("No content in Anthropic response");
-
-  // Claude někdy obaluje JSON do markdown code blocks - odstraníme je
-  const cleaned = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-  return JSON.parse(cleaned);
-}
-
-// ============================================================================
-// API VOLÁNÍ - GOOGLE (Gemini)
-// ============================================================================
-
-/**
- * Volá Google Generative AI API pro modely Gemini.
- * Používá responseMimeType pro vynucení JSON výstupu.
- */
-async function callGoogle(
-  apiKey: string,
-  model: string,
-  systemPrompt: string,
-  userPrompt: string
-): Promise<LLMResponse> {
-  console.log(`Calling Google Gemini with model: ${model}`);
-
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] }],
-        generationConfig: {
-          temperature: 0.7,
-          responseMimeType: "application/json",  // Vynutí JSON výstup
-        },
-      }),
-    }
-  );
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Google error ${response.status}: ${errorText}`);
-  }
-
-  const data = await response.json();
-  const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!content) throw new Error("No content in Google response");
-
-  return JSON.parse(content);
-}
-
-// ============================================================================
 // ROUTER PRO LLM VOLÁNÍ
 // ============================================================================
 
@@ -323,16 +229,6 @@ async function callLLM(
       const apiKey = Deno.env.get("OPENAI_API_KEY");
       if (!apiKey) throw new Error("OPENAI_API_KEY not configured");
       return callOpenAICompatible("https://api.openai.com/v1", apiKey, config.apiModel, systemPrompt, userPrompt);
-    }
-    case "anthropic": {
-      const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
-      if (!apiKey) throw new Error("ANTHROPIC_API_KEY not configured");
-      return callAnthropic(apiKey, config.apiModel, systemPrompt, userPrompt);
-    }
-    case "google": {
-      const apiKey = Deno.env.get("GOOGLE_API_KEY");
-      if (!apiKey) throw new Error("GOOGLE_API_KEY not configured");
-      return callGoogle(apiKey, config.apiModel, systemPrompt, userPrompt);
     }
   }
 }

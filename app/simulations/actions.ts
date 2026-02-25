@@ -120,25 +120,20 @@ export async function runSimulation(
       };
     }
 
-    // Call Supabase Edge Function to run the simulation
-    try {
-      const { data: edgeResponse, error: edgeError } = await supabase.functions.invoke(
-        'run-llm-simulation',
-        {
-          body: { simulationId: simulation.id }
-        }
-      );
-
-      if (edgeError) {
-        console.error("Edge Function error:", edgeError);
-        // Don't fail the whole operation - simulation is created, just log the error
-      } else {
-        console.log("Edge Function response:", edgeResponse);
-      }
-    } catch (edgeError) {
-      console.error("Failed to invoke Edge Function:", edgeError);
-      // Don't fail the whole operation - simulation is created
-    }
+    // Fire-and-forget: invoke the Edge Function without awaiting the response.
+    // This allows the user to be redirected to the simulation detail page immediately
+    // while the LLM processes in the background. The detail page uses Realtime
+    // subscriptions and polling to track progress.
+    supabase.functions
+      .invoke("run-llm-simulation", {
+        body: { simulationId: simulation.id },
+      })
+      .then(({ error }) => {
+        if (error) console.error("Edge Function error:", error);
+      })
+      .catch((err) => {
+        console.error("Failed to invoke Edge Function:", err);
+      });
 
     // Revalidate the dashboard to show updated data
     revalidatePath("/dashboard");
