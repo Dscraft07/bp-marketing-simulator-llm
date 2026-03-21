@@ -16,7 +16,6 @@
 import { useState } from "react";
 import { CampaignsTable } from "./CampaignsTable";
 import { TargetGroupsTable } from "./TargetGroupsTable";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Plus, Play } from "lucide-react";
 import { runSimulation } from "@/app/simulations/actions";
@@ -97,6 +96,8 @@ export function DashboardClient({
   const [selectedPlatform, setSelectedPlatform] = useState<string>("twitter");
   const [selectedModel, setSelectedModel] = useState<string>("xai/grok-3-mini-fast");
   const [isRunning, setIsRunning] = useState(false);
+  const [createCampaignOpen, setCreateCampaignOpen] = useState(false);
+  const [createTargetGroupOpen, setCreateTargetGroupOpen] = useState(false);
 
   const handleSelectCampaign = (campaignId: string) => {
     setSelectedCampaignId(campaignId);
@@ -205,17 +206,17 @@ export function DashboardClient({
             <h2 className="text-xl font-semibold">
               Campaigns ({campaigns.length})
             </h2>
-            <Button asChild size="sm">
-              <Link href="/campaigns/new">
-                <Plus className="mr-2 h-4 w-4" />
-                New Campaign
-              </Link>
+            <Button size="sm" onClick={() => setCreateCampaignOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              New Campaign
             </Button>
           </div>
           <CampaignsTable
             campaigns={campaigns}
             selectedCampaignId={selectedCampaignId}
             onSelectCampaign={handleSelectCampaign}
+            createDialogOpen={createCampaignOpen}
+            onCreateDialogOpenChange={setCreateCampaignOpen}
           />
         </div>
 
@@ -224,17 +225,17 @@ export function DashboardClient({
             <h2 className="text-xl font-semibold">
               Target Groups ({targetGroups.length})
             </h2>
-            <Button asChild size="sm">
-              <Link href="/target-groups/new">
-                <Plus className="mr-2 h-4 w-4" />
-                New Target Group
-              </Link>
+            <Button size="sm" onClick={() => setCreateTargetGroupOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              New Target Group
             </Button>
           </div>
           <TargetGroupsTable
             targetGroups={targetGroups}
             selectedTargetGroupId={selectedTargetGroupId}
             onSelectTargetGroup={handleSelectTargetGroup}
+            createDialogOpen={createTargetGroupOpen}
+            onCreateDialogOpenChange={setCreateTargetGroupOpen}
           />
         </div>
       </div>

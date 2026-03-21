@@ -60,6 +60,46 @@ export async function createCampaign(formData: FormData) {
   };
 }
 
+export async function updateCampaign(campaignId: string, formData: FormData) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: "Unauthorized. Please sign in to update a campaign." };
+  }
+
+  const rawData = {
+    name: formData.get("name"),
+    content: formData.get("content"),
+  };
+
+  const validationResult = campaignSchema.safeParse(rawData);
+
+  if (!validationResult.success) {
+    return { success: false, error: validationResult.error.issues[0].message };
+  }
+
+  const { name, content } = validationResult.data;
+
+  const { error } = await supabase
+    .from("campaigns")
+    .update({ name, content })
+    .eq("id", campaignId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    console.error("Supabase error:", error);
+    return { success: false, error: `Failed to update campaign: ${error.message}` };
+  }
+
+  revalidatePath("/dashboard");
+
+  return { success: true };
+}
+
 export async function deleteCampaign(campaignId: string) {
   const supabase = await createClient();
 

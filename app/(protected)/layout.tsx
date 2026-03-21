@@ -20,7 +20,7 @@ export default async function ProtectedLayout({
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <main className="flex-1 w-full max-w-7xl mx-auto px-5 py-8">
+      <main className="flex-1 w-full max-w-[1700px] mx-auto px-8 py-8">
         {children}
       </main>
     </div>

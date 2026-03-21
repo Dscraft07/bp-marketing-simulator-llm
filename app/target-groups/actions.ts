@@ -64,6 +64,49 @@ export async function createTargetGroup(formData: FormData) {
   };
 }
 
+export async function updateTargetGroup(targetGroupId: string, formData: FormData) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: "Unauthorized. Please sign in to update a target group." };
+  }
+
+  const rawData = {
+    name: formData.get("name"),
+    description: formData.get("description"),
+    persona_count: formData.get("persona_count")
+      ? Number(formData.get("persona_count"))
+      : 5,
+  };
+
+  const validationResult = targetGroupSchema.safeParse(rawData);
+
+  if (!validationResult.success) {
+    return { success: false, error: validationResult.error.issues[0].message };
+  }
+
+  const { name, description, persona_count } = validationResult.data;
+
+  const { error } = await supabase
+    .from("target_groups")
+    .update({ name, description, persona_count })
+    .eq("id", targetGroupId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    console.error("Supabase error:", error);
+    return { success: false, error: `Failed to update target group: ${error.message}` };
+  }
+
+  revalidatePath("/dashboard");
+
+  return { success: true };
+}
+
 export async function deleteTargetGroup(targetGroupId: string) {
   const supabase = await createClient();
 
