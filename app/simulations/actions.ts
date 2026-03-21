@@ -10,6 +10,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { hasApiKeyForProvider } from "@/app/profile/api-key-actions";
 
 /** Výsledek operace spuštění simulace */
 interface RunSimulationResult {
@@ -54,6 +55,20 @@ export async function runSimulation(
   }
 
   try {
+    // Pre-flight check: verify user has API key for the selected provider
+    const provider = llmModel.split("/")[0];
+    const providerLabels: Record<string, string> = {
+      openai: "OpenAI",
+      xai: "xAI (Grok)",
+    };
+    const hasKey = await hasApiKeyForProvider(user.id, provider);
+    if (!hasKey) {
+      return {
+        success: false,
+        error: `Please configure your ${providerLabels[provider] || provider} API key in Profile settings before running a simulation.`,
+      };
+    }
+
     // Fetch campaign data
     const { data: campaign, error: campaignError } = await supabase
       .from("campaigns")

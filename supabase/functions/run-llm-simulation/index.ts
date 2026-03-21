@@ -206,31 +206,43 @@ async function callOpenAICompatible(
 // ROUTER PRO LLM VOLÁNÍ
 // ============================================================================
 
+/** Base URL pro každého poskytovatele */
+const PROVIDER_BASE_URLS: Record<Provider, string> = {
+  openai: "https://api.openai.com/v1",
+  xai: "https://api.x.ai/v1",
+};
+
 /**
  * Hlavní router pro volání LLM API.
- * Na základě model ID vybere správného poskytovatele a zavolá příslušnou funkci.
- * API klíče se načítají z environment variables (Supabase Secrets).
+ * Na základě model ID vybere správného poskytovatele a načte API klíč
+ * uživatele z databáze (tabulka user_api_keys).
  */
 async function callLLM(
   modelId: string,
   systemPrompt: string,
-  userPrompt: string
+  userPrompt: string,
+  supabase: ReturnType<typeof createClient>,
+  userId: string
 ): Promise<LLMResponse> {
   const config = MODEL_CONFIGS[modelId];
   if (!config) throw new Error(`Unknown model: ${modelId}`);
 
-  switch (config.provider) {
-    case "xai": {
-      const apiKey = Deno.env.get("X_API_KEY");
-      if (!apiKey) throw new Error("X_API_KEY not configured");
-      return callOpenAICompatible("https://api.x.ai/v1", apiKey, config.apiModel, systemPrompt, userPrompt);
-    }
-    case "openai": {
-      const apiKey = Deno.env.get("OPENAI_API_KEY");
-      if (!apiKey) throw new Error("OPENAI_API_KEY not configured");
-      return callOpenAICompatible("https://api.openai.com/v1", apiKey, config.apiModel, systemPrompt, userPrompt);
-    }
+  // Fetch user's API key from database
+  const { data: keyRow, error: keyError } = await supabase
+    .from("user_api_keys")
+    .select("api_key")
+    .eq("user_id", userId)
+    .eq("provider", config.provider)
+    .single();
+
+  if (keyError || !keyRow?.api_key) {
+    throw new Error(
+      `API key for ${config.provider} not configured. Please add your API key in Profile settings.`
+    );
   }
+
+  const baseUrl = PROVIDER_BASE_URLS[config.provider];
+  return callOpenAICompatible(baseUrl, keyRow.api_key, config.apiModel, systemPrompt, userPrompt);
 }
 
 // ============================================================================
@@ -295,7 +307,7 @@ Deno.serve(async (req) => {
     // Volání LLM a zpracování odpovědi
     let llmResponse: LLMResponse;
     try {
-      llmResponse = await callLLM(modelId, systemPrompt, userPrompt);
+      llmResponse = await callLLM(modelId, systemPrompt, userPrompt, supabase, simulation.user_id);
       console.log(`Generated ${llmResponse.reactions.length} reactions`);
     } catch (apiError) {
       // Při chybě LLM - uložit error a ukončit
