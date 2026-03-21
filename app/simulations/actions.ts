@@ -38,7 +38,8 @@ export async function runSimulation(
   campaignId: string,
   targetGroupId: string,
   socialPlatform: string,
-  llmModel: string
+  llmModel: string,
+  language: string = "en"
 ): Promise<RunSimulationResult> {
   const supabase = await createClient();
 
@@ -104,6 +105,7 @@ export async function runSimulation(
       name: campaign.name,
       content: campaign.content,
       social_platform: socialPlatform,
+      language,
     };
 
     const targetGroupSnapshot = {

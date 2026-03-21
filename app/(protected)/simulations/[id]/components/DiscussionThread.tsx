@@ -10,6 +10,7 @@ interface SimulationResult {
   sentiment: "positive" | "negative" | "neutral";
   relevance_score: number | null;
   toxicity_score: number | null;
+  purchase_intent: number | null;
   created_at: string;
 }
 
@@ -119,7 +120,7 @@ export function DiscussionThread({ results }: DiscussionThreadProps) {
               </p>
 
               {/* Metrics */}
-              {(result.relevance_score !== null || result.toxicity_score !== null) && (
+              {(result.relevance_score !== null || result.toxicity_score !== null || result.purchase_intent !== null) && (
                 <div className="flex gap-4 text-xs">
                   {result.relevance_score !== null && (
                     <div className="flex items-center gap-1.5">
@@ -155,6 +156,28 @@ export function DiscussionThread({ results }: DiscussionThreadProps) {
                         </div>
                         <span className="font-medium text-xs">
                           {Math.round(result.toxicity_score * 100)}%
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  {result.purchase_intent !== null && (
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-muted-foreground">Purchase Intent:</span>
+                      <div className="flex items-center gap-1">
+                        <div className="w-12 h-1.5 bg-muted rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all ${
+                              result.purchase_intent >= 0.7
+                                ? "bg-green-500"
+                                : result.purchase_intent >= 0.4
+                                ? "bg-yellow-500"
+                                : "bg-red-500"
+                            }`}
+                            style={{ width: `${result.purchase_intent * 100}%` }}
+                          />
+                        </div>
+                        <span className="font-medium text-xs">
+                          {Math.round(result.purchase_intent * 100)}%
                         </span>
                       </div>
                     </div>

@@ -37,6 +37,7 @@ interface SimulationResult {
   sentiment: "positive" | "negative" | "neutral";
   relevance_score: number | null;
   toxicity_score: number | null;
+  purchase_intent: number | null;
   created_at: string;
 }
 

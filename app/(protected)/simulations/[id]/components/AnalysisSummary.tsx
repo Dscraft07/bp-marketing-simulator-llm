@@ -10,6 +10,7 @@ interface SimulationResult {
   sentiment: "positive" | "negative" | "neutral";
   relevance_score: number | null;
   toxicity_score: number | null;
+  purchase_intent: number | null;
   created_at: string;
 }
 
@@ -70,6 +71,13 @@ export function AnalysisSummary({ results }: AnalysisSummaryProps) {
         resultsWithToxicity.length
       : null;
 
+  const resultsWithPurchaseIntent = results.filter((r) => r.purchase_intent !== null);
+  const averagePurchaseIntent =
+    resultsWithPurchaseIntent.length > 0
+      ? resultsWithPurchaseIntent.reduce((sum, r) => sum + (r.purchase_intent || 0), 0) /
+        resultsWithPurchaseIntent.length
+      : null;
+
   const COLORS = {
     Positive: "#22c55e", // green-500
     Neutral: "#94a3b8", // slate-400
@@ -79,7 +87,7 @@ export function AnalysisSummary({ results }: AnalysisSummaryProps) {
   return (
     <div className="space-y-4">
       {/* Summary Metrics - Compact Cards */}
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <div className="p-4 rounded-lg border bg-gradient-to-br from-blue-50 to-background dark:from-blue-950/20">
           <p className="text-xs font-medium text-muted-foreground mb-1">
             Total Reactions
@@ -122,6 +130,26 @@ export function AnalysisSummary({ results }: AnalysisSummaryProps) {
                   : averageToxicity <= 0.5
                   ? "Medium"
                   : "High"}
+              </Badge>
+            </div>
+          </div>
+        )}
+
+        {averagePurchaseIntent !== null && (
+          <div className="p-4 rounded-lg border bg-gradient-to-br from-purple-50 to-background dark:from-purple-950/20">
+            <p className="text-xs font-medium text-muted-foreground mb-1">
+              Avg. Purchase Intent
+            </p>
+            <div className="flex items-baseline gap-2">
+              <p className="text-2xl font-bold">
+                {(averagePurchaseIntent * 100).toFixed(0)}%
+              </p>
+              <Badge variant="outline" className="text-xs">
+                {averagePurchaseIntent >= 0.7
+                  ? "High"
+                  : averagePurchaseIntent >= 0.4
+                  ? "Medium"
+                  : "Low"}
               </Badge>
             </div>
           </div>

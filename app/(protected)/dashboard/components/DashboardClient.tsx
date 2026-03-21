@@ -95,6 +95,7 @@ export function DashboardClient({
   >(null);
   const [selectedPlatform, setSelectedPlatform] = useState<string>("twitter");
   const [selectedModel, setSelectedModel] = useState<string>("xai/grok-3-mini-fast");
+  const [selectedLanguage, setSelectedLanguage] = useState<string>("en");
   const [isRunning, setIsRunning] = useState(false);
   const [createCampaignOpen, setCreateCampaignOpen] = useState(false);
   const [createTargetGroupOpen, setCreateTargetGroupOpen] = useState(false);
@@ -120,7 +121,8 @@ export function DashboardClient({
         selectedCampaignId,
         selectedTargetGroupId,
         selectedPlatform,
-        selectedModel
+        selectedModel,
+        selectedLanguage
       );
 
       if (result.success && result.simulationId) {
@@ -144,14 +146,36 @@ export function DashboardClient({
           <h1 className="text-3xl font-bold">Dashboard</h1>
           <p className="text-muted-foreground mt-2">Welcome to your dashboard</p>
         </div>
-        <Button
-          size="lg"
-          disabled={!selectedCampaignId || !selectedTargetGroupId || isRunning}
-          onClick={handleRunSimulation}
-        >
-          <Play className="mr-2 h-5 w-5" />
-          {isRunning ? "Starting..." : "Run Simulation"}
-        </Button>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center rounded-lg border overflow-hidden">
+            <Button
+              type="button"
+              size="sm"
+              variant={selectedLanguage === "en" ? "default" : "ghost"}
+              className="rounded-none px-3"
+              onClick={() => setSelectedLanguage("en")}
+            >
+              EN
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={selectedLanguage === "cs" ? "default" : "ghost"}
+              className="rounded-none px-3"
+              onClick={() => setSelectedLanguage("cs")}
+            >
+              CZ
+            </Button>
+          </div>
+          <Button
+            size="lg"
+            disabled={!selectedCampaignId || !selectedTargetGroupId || isRunning}
+            onClick={handleRunSimulation}
+          >
+            <Play className="mr-2 h-5 w-5" />
+            {isRunning ? "Starting..." : "Run Simulation"}
+          </Button>
+        </div>
       </div>
 
       {/* Social Platform Selection */}

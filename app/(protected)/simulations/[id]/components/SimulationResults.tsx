@@ -15,6 +15,7 @@ interface SimulationResult {
   sentiment: "positive" | "negative" | "neutral";
   relevance_score: number | null;
   toxicity_score: number | null;
+  purchase_intent: number | null;
   created_at: string;
 }
 
@@ -59,9 +60,10 @@ function estimateDurationSeconds(
   model: string | null,
   personaCount: number
 ): number {
+  // 2 LLM calls: generation + evaluation
   const isFast = model ? FAST_MODELS.has(model) : false;
-  const base = isFast ? 5 : 10;
-  const perPersona = isFast ? 0.5 : 1.2;
+  const base = isFast ? 10 : 20;
+  const perPersona = isFast ? 1 : 2.4;
   return Math.ceil(base + perPersona * personaCount);
 }
 
@@ -97,12 +99,13 @@ export function SimulationResults({
       target_group: targetGroupSnapshot,
       model,
       results_count: results.length,
-      results: results.map(({ persona_name, content, sentiment, relevance_score, toxicity_score }) => ({
+      results: results.map(({ persona_name, content, sentiment, relevance_score, toxicity_score, purchase_intent }) => ({
         persona_name,
         content,
         sentiment,
         relevance_score,
         toxicity_score,
+        purchase_intent,
       })),
     };
 
