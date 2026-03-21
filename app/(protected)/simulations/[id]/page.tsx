@@ -241,6 +241,8 @@ export default async function SimulationPage({ params }: SimulationPageProps) {
         createdAt={simulation.created_at}
         model={simulation.model}
         personaCount={simulation.target_group_snapshot.persona_count}
+        campaignSnapshot={simulation.campaign_snapshot}
+        targetGroupSnapshot={simulation.target_group_snapshot}
       />
     </div>
   );

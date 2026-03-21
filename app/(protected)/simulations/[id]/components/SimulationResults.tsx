@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { DiscussionThread } from "./DiscussionThread";
 import { AnalysisSummary } from "./AnalysisSummary";
 
@@ -19,6 +20,18 @@ interface SimulationResult {
 
 type SimulationStatus = "pending" | "running" | "completed" | "failed";
 
+interface CampaignSnapshot {
+  name: string;
+  content: string;
+  social_platform?: string;
+}
+
+interface TargetGroupSnapshot {
+  name: string;
+  description: string;
+  persona_count: number;
+}
+
 interface SimulationResultsProps {
   simulationId: string;
   initialResults: SimulationResult[];
@@ -26,6 +39,8 @@ interface SimulationResultsProps {
   createdAt: string;
   model: string | null;
   personaCount: number;
+  campaignSnapshot: CampaignSnapshot;
+  targetGroupSnapshot: TargetGroupSnapshot;
 }
 
 const FAST_MODELS = new Set([
@@ -64,6 +79,8 @@ export function SimulationResults({
   createdAt,
   model,
   personaCount,
+  campaignSnapshot,
+  targetGroupSnapshot,
 }: SimulationResultsProps) {
   const router = useRouter();
   const [results, setResults] = useState<SimulationResult[]>(initialResults);
@@ -71,6 +88,34 @@ export function SimulationResults({
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const hasRefreshed = useRef(false);
+
+  const handleExportJson = useCallback(() => {
+    const exportData = {
+      simulation_id: simulationId,
+      exported_at: new Date().toISOString(),
+      campaign: campaignSnapshot,
+      target_group: targetGroupSnapshot,
+      model,
+      results_count: results.length,
+      results: results.map(({ persona_name, content, sentiment, relevance_score, toxicity_score }) => ({
+        persona_name,
+        content,
+        sentiment,
+        relevance_score,
+        toxicity_score,
+      })),
+    };
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `simulation-${simulationId}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [simulationId, campaignSnapshot, targetGroupSnapshot, model, results]);
 
   const estimatedSeconds = estimateDurationSeconds(model, personaCount);
   const isActive = status === "pending" || status === "running";
@@ -268,14 +313,19 @@ export function SimulationResults({
             <h2 className="text-xl font-semibold">
               Persona Reactions ({results.length})
             </h2>
-            {isSubscribed && (
-              <Badge
-                variant="outline"
-                className="text-green-600 border-green-600"
-              >
-                <span className="mr-1.5">●</span> Live
-              </Badge>
-            )}
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={handleExportJson}>
+                Export JSON
+              </Button>
+              {isSubscribed && (
+                <Badge
+                  variant="outline"
+                  className="text-green-600 border-green-600"
+                >
+                  <span className="mr-1.5">●</span> Live
+                </Badge>
+              )}
+            </div>
           </div>
           <DiscussionThread results={results} />
         </div>
@@ -302,9 +352,16 @@ export function SimulationResults({
       {results.length > 0 && <AnalysisSummary results={results} />}
 
       <div>
-        <h2 className="text-xl font-semibold mb-4">
-          Persona Reactions ({results.length})
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">
+            Persona Reactions ({results.length})
+          </h2>
+          {results.length > 0 && (
+            <Button variant="outline" size="sm" onClick={handleExportJson}>
+              Export JSON
+            </Button>
+          )}
+        </div>
         {results.length === 0 ? (
           <p className="text-muted-foreground text-center py-12">
             No results found for this simulation.
