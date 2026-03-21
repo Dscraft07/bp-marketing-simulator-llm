@@ -86,15 +86,14 @@ export function CampaignsTable({
   }
 
   return (
-    <div className="border rounded-lg overflow-hidden relative">
-      <div className="overflow-x-auto">
-        <Table>
+    <div className="border rounded-lg overflow-hidden relative min-w-0">
+        <Table className="table-fixed">
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[200px]">Name</TableHead>
-              <TableHead className="min-w-0">Content</TableHead>
-              <TableHead className="w-[120px]">Created At</TableHead>
-              <TableHead className="w-[80px]">Actions</TableHead>
+              <TableHead className="w-[40%]">Name</TableHead>
+              <TableHead className="w-[20%]">Content</TableHead>
+              <TableHead className="w-[20%]">Created At</TableHead>
+              <TableHead className="w-[20%]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -113,10 +112,8 @@ export function CampaignsTable({
                 }
                 onClick={() => onSelectCampaign(campaign.id)}
               >
-                <TableCell className="font-medium">{campaign.name}</TableCell>
-                <TableCell className="truncate max-w-0">
-                  {campaign.content}
-                </TableCell>
+                <TableCell className="font-medium truncate">{campaign.name}</TableCell>
+                <TableCell className="truncate">{campaign.content}</TableCell>
                 <TableCell className="whitespace-nowrap">
                   {new Date(campaign.created_at).toLocaleDateString("en-US", {
                     year: "numeric",
@@ -139,7 +136,6 @@ export function CampaignsTable({
             ))}
           </TableBody>
         </Table>
-      </div>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

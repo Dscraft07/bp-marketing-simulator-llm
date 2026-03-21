@@ -200,7 +200,7 @@ export function DashboardClient({
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 mt-8">
-        <div>
+        <div className="min-w-0">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">
               Campaigns ({campaigns.length})
@@ -219,7 +219,7 @@ export function DashboardClient({
           />
         </div>
 
-        <div>
+        <div className="min-w-0">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">
               Target Groups ({targetGroups.length})

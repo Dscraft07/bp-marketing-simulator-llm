@@ -87,16 +87,15 @@ export function TargetGroupsTable({
   }
 
   return (
-    <div className="border rounded-lg overflow-hidden relative">
-      <div className="overflow-x-auto">
-        <Table>
+    <div className="border rounded-lg overflow-hidden relative min-w-0">
+        <Table className="table-fixed">
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[180px]">Name</TableHead>
-              <TableHead className="min-w-0">Description</TableHead>
-              <TableHead className="w-[100px]">Personas</TableHead>
-              <TableHead className="w-[120px]">Created At</TableHead>
-              <TableHead className="w-[80px]">Actions</TableHead>
+              <TableHead className="w-[30%]">Name</TableHead>
+              <TableHead className="w-[15%]">Description</TableHead>
+              <TableHead className="w-[12%]">Personas</TableHead>
+              <TableHead className="w-[23%]">Created At</TableHead>
+              <TableHead className="w-[20%]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -115,10 +114,8 @@ export function TargetGroupsTable({
                 }
                 onClick={() => onSelectTargetGroup(group.id)}
               >
-                <TableCell className="font-medium">{group.name}</TableCell>
-                <TableCell className="truncate max-w-0">
-                  {group.description}
-                </TableCell>
+                <TableCell className="font-medium truncate">{group.name}</TableCell>
+                <TableCell className="truncate">{group.description}</TableCell>
                 <TableCell>{group.persona_count}</TableCell>
                 <TableCell className="whitespace-nowrap">
                   {new Date(group.created_at).toLocaleDateString("en-US", {
@@ -142,7 +139,6 @@ export function TargetGroupsTable({
             ))}
           </TableBody>
         </Table>
-      </div>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
