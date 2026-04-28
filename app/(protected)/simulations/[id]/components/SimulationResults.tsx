@@ -66,7 +66,8 @@ function estimateDurationSeconds(
   personaCount: number
 ): number {
   const perPersona =
-    (model && MODEL_SECONDS_PER_PERSONA[model]) ?? DEFAULT_SECONDS_PER_PERSONA;
+    (model ? MODEL_SECONDS_PER_PERSONA[model] : undefined) ??
+    DEFAULT_SECONDS_PER_PERSONA;
   return Math.ceil(perPersona * personaCount);
 }
 
