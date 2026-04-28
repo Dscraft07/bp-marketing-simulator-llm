@@ -16,6 +16,7 @@ interface SimulationResult {
   relevance_score: number | null;
   toxicity_score: number | null;
   purchase_intent: number | null;
+  diversity_score: number | null;
   created_at: string;
 }
 
@@ -103,13 +104,14 @@ export function SimulationResults({
       target_group: targetGroupSnapshot,
       model,
       results_count: results.length,
-      results: results.map(({ persona_name, content, sentiment, relevance_score, toxicity_score, purchase_intent }) => ({
+      results: results.map(({ persona_name, content, sentiment, relevance_score, toxicity_score, purchase_intent, diversity_score }) => ({
         persona_name,
         content,
         sentiment,
         relevance_score,
         toxicity_score,
         purchase_intent,
+        diversity_score,
       })),
     };
 

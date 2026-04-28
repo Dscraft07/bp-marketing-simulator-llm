@@ -38,6 +38,7 @@ interface SimulationResult {
   relevance_score: number | null;
   toxicity_score: number | null;
   purchase_intent: number | null;
+  diversity_score: number | null;
   created_at: string;
 }
 

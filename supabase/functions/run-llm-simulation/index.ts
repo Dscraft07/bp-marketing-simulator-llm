@@ -6,7 +6,7 @@
  * 1. Načtení dat simulace z databáze
  * 2. Sestavení promptů pro LLM (generování reakcí)
  * 3. Volání LLM API pro generování reakcí
- * 4. Druhé volání LLM API pro nezávislé hodnocení metrik (relevance, toxicity, purchase_intent)
+ * 4. Druhé volání LLM API pro nezávislé hodnocení metrik (relevance, toxicity, purchase_intent, diversity)
  * 5. Uložení výsledků zpět do databáze
  *
  * Podporované modely jsou definovány v MODEL_CONFIGS a zahrnují poskytovatele
@@ -45,6 +45,7 @@ interface EvaluatedScores {
   relevance_score: number;
   toxicity_score: number;
   purchase_intent: number;
+  diversity_score: number;
 }
 
 /** Odpověď z druhého LLM volání */
@@ -203,7 +204,7 @@ function buildEvaluationPrompts(
 ): { systemPrompt: string; userPrompt: string } {
   const platformName = getPlatformDisplayName(socialPlatform);
 
-  const systemPrompt = `You are an independent marketing analytics evaluator. You will receive a campaign and a set of simulated persona reactions. Score each reaction on three metrics.
+  const systemPrompt = `You are an independent marketing analytics evaluator. You will receive a campaign and a set of simulated persona reactions. Score each reaction on four metrics.
 
 SCORING GUIDELINES:
 
@@ -232,9 +233,18 @@ SCORING GUIDELINES:
    - 0.75-0.9: Very likely — enthusiastic, already planning to buy/try
    - 0.95-1.0: Immediate intent — "shut up and take my money" energy
 
+4. DIVERSITY (diversity_score: 0.0-1.0)
+   How distinctive and unique is this reaction COMPARED TO THE OTHER REACTIONS in this set. Judge across angle/argument, perspective, tone, vocabulary, framing, and the specific aspects of the campaign the persona engages with — not just text length or surface wording.
+   - 0.0-0.2: Highly generic — duplicates the angle, tone, and points of several other reactions
+   - 0.3-0.4: Mostly redundant — similar take to others, only minor variation
+   - 0.5-0.6: Somewhat distinct — overlaps with others but adds at least one fresh angle or framing
+   - 0.7-0.8: Distinctive — clearly different perspective, argument, or tone from most other reactions
+   - 0.9-1.0: Highly unique — stands alone in this set, brings a perspective no one else does
+
 IMPORTANT:
 - Use the FULL range of each scale. Do not cluster scores.
-- Each metric is independent — a toxic comment can still show high purchase intent, a highly relevant persona might still not want to buy.
+- Each metric is independent — a toxic comment can still show high purchase intent, a highly relevant persona might still not want to buy, a unique reaction is not automatically more positive.
+- Diversity is RELATIVE to the other reactions in this set — score it by comparing each reaction against the others.
 - Base scores on what the reaction TEXT reveals, not assumptions.
 
 OUTPUT FORMAT (strict JSON, no markdown):
@@ -244,7 +254,8 @@ OUTPUT FORMAT (strict JSON, no markdown):
       "persona_name": "Exact persona name from input",
       "relevance_score": 0.65,
       "toxicity_score": 0.02,
-      "purchase_intent": 0.15
+      "purchase_intent": 0.15,
+      "diversity_score": 0.55
     }
   ]
 }
@@ -502,6 +513,7 @@ Deno.serve(async (req) => {
         relevance_score: scores?.relevance_score ?? 0,
         toxicity_score: scores?.toxicity_score ?? 0,
         purchase_intent: scores?.purchase_intent ?? 0,
+        diversity_score: scores?.diversity_score ?? 0,
       };
     });
 

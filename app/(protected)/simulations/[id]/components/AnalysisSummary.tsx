@@ -11,6 +11,7 @@ interface SimulationResult {
   relevance_score: number | null;
   toxicity_score: number | null;
   purchase_intent: number | null;
+  diversity_score: number | null;
   created_at: string;
 }
 
@@ -78,6 +79,13 @@ export function AnalysisSummary({ results }: AnalysisSummaryProps) {
         resultsWithPurchaseIntent.length
       : null;
 
+  const resultsWithDiversity = results.filter((r) => r.diversity_score !== null);
+  const averageDiversity =
+    resultsWithDiversity.length > 0
+      ? resultsWithDiversity.reduce((sum, r) => sum + (r.diversity_score || 0), 0) /
+        resultsWithDiversity.length
+      : null;
+
   const COLORS = {
     Positive: "#22c55e", // green-500
     Neutral: "#94a3b8", // slate-400
@@ -87,7 +95,7 @@ export function AnalysisSummary({ results }: AnalysisSummaryProps) {
   return (
     <div className="space-y-4">
       {/* Summary Metrics - Compact Cards */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <div className="p-4 rounded-lg border bg-gradient-to-br from-blue-50 to-background dark:from-blue-950/20">
           <p className="text-xs font-medium text-muted-foreground mb-1">
             Total Reactions
@@ -148,6 +156,26 @@ export function AnalysisSummary({ results }: AnalysisSummaryProps) {
                 {averagePurchaseIntent >= 0.7
                   ? "High"
                   : averagePurchaseIntent >= 0.4
+                  ? "Medium"
+                  : "Low"}
+              </Badge>
+            </div>
+          </div>
+        )}
+
+        {averageDiversity !== null && (
+          <div className="p-4 rounded-lg border bg-gradient-to-br from-pink-50 to-background dark:from-pink-950/20">
+            <p className="text-xs font-medium text-muted-foreground mb-1">
+              Avg. Diversity
+            </p>
+            <div className="flex items-baseline gap-2">
+              <p className="text-2xl font-bold">
+                {(averageDiversity * 100).toFixed(0)}%
+              </p>
+              <Badge variant="outline" className="text-xs">
+                {averageDiversity >= 0.7
+                  ? "High"
+                  : averageDiversity >= 0.4
                   ? "Medium"
                   : "Low"}
               </Badge>

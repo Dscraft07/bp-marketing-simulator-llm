@@ -11,6 +11,7 @@ interface SimulationResult {
   relevance_score: number | null;
   toxicity_score: number | null;
   purchase_intent: number | null;
+  diversity_score: number | null;
   created_at: string;
 }
 
@@ -120,7 +121,7 @@ export function DiscussionThread({ results }: DiscussionThreadProps) {
               </p>
 
               {/* Metrics */}
-              {(result.relevance_score !== null || result.toxicity_score !== null || result.purchase_intent !== null) && (
+              {(result.relevance_score !== null || result.toxicity_score !== null || result.purchase_intent !== null || result.diversity_score !== null) && (
                 <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs">
                   {result.relevance_score !== null && (
                     <div className="flex items-center gap-1.5 whitespace-nowrap">
@@ -178,6 +179,22 @@ export function DiscussionThread({ results }: DiscussionThreadProps) {
                         </div>
                         <span className="font-medium text-xs">
                           {Math.round(result.purchase_intent * 100)}%
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  {result.diversity_score !== null && (
+                    <div className="flex items-center gap-1.5 whitespace-nowrap">
+                      <span className="text-muted-foreground">Diversity:</span>
+                      <div className="flex items-center gap-1">
+                        <div className="w-12 h-1.5 bg-muted rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-pink-500 rounded-full transition-all"
+                            style={{ width: `${result.diversity_score * 100}%` }}
+                          />
+                        </div>
+                        <span className="font-medium text-xs">
+                          {Math.round(result.diversity_score * 100)}%
                         </span>
                       </div>
                     </div>
