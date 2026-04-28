@@ -121,9 +121,9 @@ export function DiscussionThread({ results }: DiscussionThreadProps) {
 
               {/* Metrics */}
               {(result.relevance_score !== null || result.toxicity_score !== null || result.purchase_intent !== null) && (
-                <div className="flex gap-4 text-xs">
+                <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs">
                   {result.relevance_score !== null && (
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 whitespace-nowrap">
                       <span className="text-muted-foreground">Relevance:</span>
                       <div className="flex items-center gap-1">
                         <div className="w-12 h-1.5 bg-muted rounded-full overflow-hidden">
@@ -139,7 +139,7 @@ export function DiscussionThread({ results }: DiscussionThreadProps) {
                     </div>
                   )}
                   {result.toxicity_score !== null && (
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 whitespace-nowrap">
                       <span className="text-muted-foreground">Toxicity:</span>
                       <div className="flex items-center gap-1">
                         <div className="w-12 h-1.5 bg-muted rounded-full overflow-hidden">
@@ -161,7 +161,7 @@ export function DiscussionThread({ results }: DiscussionThreadProps) {
                     </div>
                   )}
                   {result.purchase_intent !== null && (
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 whitespace-nowrap">
                       <span className="text-muted-foreground">Purchase Intent:</span>
                       <div className="flex items-center gap-1">
                         <div className="w-12 h-1.5 bg-muted rounded-full overflow-hidden">

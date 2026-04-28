@@ -44,11 +44,6 @@ interface SimulationResultsProps {
   targetGroupSnapshot: TargetGroupSnapshot;
 }
 
-const FAST_MODELS = new Set([
-  "xai/grok-3-mini-fast",
-  "openai/gpt-4o-mini",
-]);
-
 const MODEL_DISPLAY_NAMES: Record<string, string> = {
   "xai/grok-3-mini-fast": "Grok 3 Mini Fast",
   "xai/grok-3-fast": "Grok 3 Fast",
@@ -56,15 +51,23 @@ const MODEL_DISPLAY_NAMES: Record<string, string> = {
   "openai/gpt-4o": "GPT-4o",
 };
 
+// Measured seconds-per-persona for 20 responses (generation + evaluation)
+const MODEL_SECONDS_PER_PERSONA: Record<string, number> = {
+  "openai/gpt-4o": 1.0,
+  "xai/grok-3-fast": 2.1,
+  "openai/gpt-4o-mini": 2.45,
+  "xai/grok-3-mini-fast": 3.0,
+};
+
+const DEFAULT_SECONDS_PER_PERSONA = 2.4;
+
 function estimateDurationSeconds(
   model: string | null,
   personaCount: number
 ): number {
-  // 2 LLM calls: generation + evaluation
-  const isFast = model ? FAST_MODELS.has(model) : false;
-  const base = isFast ? 10 : 20;
-  const perPersona = isFast ? 1 : 2.4;
-  return Math.ceil(base + perPersona * personaCount);
+  const perPersona =
+    (model && MODEL_SECONDS_PER_PERSONA[model]) ?? DEFAULT_SECONDS_PER_PERSONA;
+  return Math.ceil(perPersona * personaCount);
 }
 
 function formatDuration(seconds: number): string {
